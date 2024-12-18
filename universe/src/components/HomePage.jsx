@@ -1,17 +1,20 @@
+// Import necessary libraries
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { 
   BookOpenIcon, 
   UsersIcon, 
   HeartIcon, 
   SunIcon, 
   MoonIcon, 
-  SparklesIcon 
+  SparklesIcon, 
+  UserIcon 
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const HomePage = () => {
   const [darkMode, setDarkMode] = useState(false);
-  const [selectedSection, setSelectedSection] = useState(null);
+  const navigate = useNavigate();
 
   // Theme management with local storage
   useEffect(() => {
@@ -83,51 +86,60 @@ const HomePage = () => {
               UniVerse
             </h1>
           </div>
-          
-          <motion.button 
-            onClick={toggleDarkMode}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-          >
-            {darkMode ? <SunIcon className="text-yellow-500" /> : <MoonIcon className="text-blue-600" />}
-          </motion.button>
+          <div className="flex items-center space-x-4">
+            <motion.button 
+              onClick={toggleDarkMode}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            >
+              {darkMode ? <SunIcon className="text-yellow-500" /> : <MoonIcon className="text-blue-600" />}
+            </motion.button>
+            <motion.button
+              onClick={() => navigate('/profile')}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            >
+              <UserIcon className="text-gray-800 dark:text-gray-200" />
+            </motion.button>
+          </div>
         </div>
       </header>
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-12">
         <motion.h2 
-          initial={{ opacity: 0, y: -50 }}
+          initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-4xl font-extrabold text-center mb-12 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600"
+          transition={{ duration: 0.3 }}
+          className="text-4xl font-extrabold text-center mb-8 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600"
         >
           Choose Your Campus Experience
         </motion.h2>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-3 gap-6">
           {sections.map((section) => (
             <motion.div 
               key={section.id}
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={{ opacity: 0.5, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.01, delay: sections.findIndex(s => s.id === section.id) * 0.01 }}
-              whileHover={{ scale: 1.10 }}
-              whileTap={{ scale: 0.85 }}
+              transition={{ duration: 0.01 }}
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.9 }}
               className={`
                 ${section.color} 
-                text-white rounded-2xl p-6 shadow-2xl 
-                transform transition-all duration-300 
-                hover:shadow-2xl cursor-pointer
+                text-white rounded-xl p-5 shadow-lg 
+                transform transition-all duration-200 
+                hover:shadow-xl cursor-pointer
                 relative overflow-hidden
               `}
-              onClick={() => setSelectedSection(section.id)}
+              onClick={() => navigate(`/${section.id}`)}
             >
               <div className="relative z-10">
-                <section.icon size={48} className="mb-4" />
-                <h3 className="text-2xl font-bold mb-2">{section.title}</h3>
-                <p className="text-sm opacity-80 mb-4">{section.description}</p>
+                <section.icon size={48} className="mb-3" />
+                <h3 className="text-xl font-bold mb-2">{section.title}</h3>
+                <p className="text-sm opacity-80 mb-3">{section.description}</p>
                 
                 <ul className="space-y-1 text-xs opacity-90">
                   {section.features.map((feature) => (
