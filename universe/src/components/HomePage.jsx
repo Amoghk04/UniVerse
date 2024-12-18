@@ -112,9 +112,9 @@ const HomePage = () => {
               key={section.id}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: sections.findIndex(s => s.id === section.id) * 0.2 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              transition={{ duration: 0.01, delay: sections.findIndex(s => s.id === section.id) * 0.01 }}
+              whileHover={{ scale: 1.15 }}
+              whileTap={{ scale: 0.85 }}
               className={`
                 ${section.color} 
                 text-white rounded-2xl p-6 shadow-2xl 
