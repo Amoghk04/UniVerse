@@ -113,7 +113,7 @@ const HomePage = () => {
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.01, delay: sections.findIndex(s => s.id === section.id) * 0.01 }}
-              whileHover={{ scale: 1.15 }}
+              whileHover={{ scale: 1.10 }}
               whileTap={{ scale: 0.85 }}
               className={`
                 ${section.color} 
