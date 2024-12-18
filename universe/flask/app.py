@@ -24,20 +24,21 @@ users_collection = db["users"]
 @app.route("/register", methods=["POST"])
 def register():
     data = request.json
+    name = data.get("name")
     username = data.get('username')
     email = data.get('email')
     password = data.get('password')
     usn = data.get('usn')
     isAlumni = data.get('isAlumni')
     print(username, email, password, usn, isAlumni)
-    if not username or not email or not password or not usn:
+    if not username or not email or not password or not usn or not name:
         return jsonify({"error": "All fields are required"}), 400
     
     if users_collection.find_one({"username": username}) or users_collection.find_one({"email": email}) or users_collection.find_one({"usn": usn}):
         return jsonify({"error":"Username or email already exists"}), 400
     
     hashed_password = generate_password_hash(password)
-    users_collection.insert_one({"username":username, "email":email, "password": hashed_password, "usn": usn, "isAlumni": isAlumni})
+    users_collection.insert_one({"name": name, "username":username, "email":email, "password": hashed_password, "usn": usn, "isAlumni": isAlumni})
 
     return jsonify({"message":"User registered successfully"}), 201
 
@@ -79,5 +80,13 @@ def forgot_password():
 
     return jsonify({"message": "Password updated successfully"}), 200
 
+@app.route("/user/<username>", methods=["GET"])
+def get_user_details(username):
+    user = users_collection.find_one({"username":username}, {"_id":0, "password": 0})
+
+    if not user:
+        return jsonify({"error": "User not found"}), 400
+    
+    return jsonify({"user": user}), 200
 if __name__=="__main__":
     app.run(debug=True, port=5000)

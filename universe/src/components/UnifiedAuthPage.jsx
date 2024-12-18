@@ -12,6 +12,7 @@ const UnifiedAuthPage = () => {
   const [currentForm, setCurrentForm] = useState('login');
   const [resetStep, setResetStep] = useState('verify');
   const [formData, setFormData] = useState({
+    name: '',
     username: '',
     email: '',
     password: '',
@@ -34,13 +35,13 @@ const UnifiedAuthPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setVerificationError('');
-
+  
     const validationError = validateForm(currentForm, formData);
     if (validationError) {
       alert(validationError);
       return;
     }
-
+  
     let url = '';
     if (currentForm === 'login') {
       url = 'http://127.0.0.1:5000/login';
@@ -49,7 +50,7 @@ const UnifiedAuthPage = () => {
     } else if (currentForm === 'forgotPassword') {
       url = 'http://127.0.0.1:5000/forgot_password';
     }
-
+  
     try {
       const response = await fetch(url, {
         method: 'POST',
@@ -58,12 +59,17 @@ const UnifiedAuthPage = () => {
         },
         body: JSON.stringify(formData),
       });
-
+  
       const result = await response.json();
-      console.log(result)
+  
       if (response.ok) {
         console.log(result.message || `${currentForm} Successful`);
-
+  
+        if (currentForm === 'login') {
+          // Store the username in local storage
+          localStorage.setItem('currentUsername', formData.username);
+        }
+  
         navigate('/home');
       } else {
         console.error(result.message || 'Something went wrong');
@@ -72,6 +78,7 @@ const UnifiedAuthPage = () => {
       console.error('Error:', error);
     }
   };
+  
 
   const switchForm = (formType) => {
     setCurrentForm(formType);

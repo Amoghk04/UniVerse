@@ -25,6 +25,14 @@ const RegisterForm = ({ formData, handleChange }) => {
       className="space-y-4"
     >
       <FormInput
+        label="Name"
+        type="text"
+        name="name"
+        value={formData.name}
+        onChange={handleChange}
+        required
+      />
+      <FormInput
         label="Username"
         type="text"
         name="username"
