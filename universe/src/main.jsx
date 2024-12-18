@@ -7,12 +7,14 @@ import EducationPage from './components/EducationPage';
 import SocialsPage from './components/SocialsPage';
 import CollegeLifePage from './components/CollegeLifePage';
 import './index.css';
+import UnifiedAuthPage from './components/UnifiedAuthPage';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<UnifiedAuthPage />} />
+        <Route path="/home" element={<HomePage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/education" element={<EducationPage />} />
         <Route path="/socials" element={<SocialsPage />} />

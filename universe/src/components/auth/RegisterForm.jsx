@@ -1,9 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import FormInput from '../common/FormInput';
 import { staggeredChildren } from '../../utils/animations';
 
 const RegisterForm = ({ formData, handleChange }) => {
+  const [passwordVisible, setPasswordVisible] = useState(false); // State to toggle password visibility
+  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false); // State to toggle confirm password visibility
+
+  // Function to toggle password visibility
+  const togglePasswordVisibility = () => {
+    setPasswordVisible(!passwordVisible);
+  };
+
+  // Function to toggle confirm password visibility
+  const toggleConfirmPasswordVisibility = () => {
+    setConfirmPasswordVisible(!confirmPasswordVisible);
+  };
+
   return (
     <motion.div
       variants={staggeredChildren}
@@ -48,22 +61,42 @@ const RegisterForm = ({ formData, handleChange }) => {
           I am an alumni
         </label>
       </div>
-      <FormInput
-        label="Password"
-        type="password"
-        name="password"
-        value={formData.password}
-        onChange={handleChange}
-        required
-      />
-      <FormInput
-        label="Confirm Password"
-        type="password"
-        name="confirmPassword"
-        value={formData.confirmPassword}
-        onChange={handleChange}
-        required
-      />
+      <div className="relative">
+        <FormInput
+          label="Password"
+          type={passwordVisible ? 'text' : 'password'} // Toggle type based on visibility
+          name="password"
+          value={formData.password}
+          onChange={handleChange}
+          required
+        />
+        {/* Toggle visibility button */}
+        <button
+          type="button"
+          onClick={togglePasswordVisibility}
+          className="absolute top-1/2 right-3 transform -translate-y-1/5 text-gray-500"
+        >
+          {passwordVisible ? 'Hide' : 'Show'}
+        </button>
+      </div>
+      <div className="relative">
+        <FormInput
+          label="Confirm Password"
+          type={confirmPasswordVisible ? 'text' : 'password'} // Toggle type based on visibility
+          name="confirmPassword"
+          value={formData.confirmPassword}
+          onChange={handleChange}
+          required
+        />
+        {/* Toggle visibility button */}
+        <button
+          type="button"
+          onClick={toggleConfirmPasswordVisibility}
+          className="absolute top-1/2 right-3 transform -translate-y-1/5 text-gray-500"
+        >
+          {confirmPasswordVisible ? 'Hide' : 'Show'}
+        </button>
+      </div>
     </motion.div>
   );
 };

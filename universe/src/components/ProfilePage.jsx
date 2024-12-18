@@ -8,7 +8,7 @@ const ProfilePage = () => {
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white flex flex-col items-center">
       <header className="bg-white dark:bg-gray-800 shadow-md py-4 w-full flex items-center justify-between px-4">
         <button 
-          onClick={() => navigate('/')} 
+          onClick={() => navigate('/home')} 
           className="px-3 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition"
         >
           Back
@@ -32,7 +32,7 @@ const ProfilePage = () => {
           </div>
         </div>
         <button 
-          onClick={() => console.log('Logged out')} 
+          onClick={() => navigate('/')} 
           className="mt-8 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full text-lg font-semibold shadow-lg hover:from-blue-600 hover:to-purple-700 transition"
         >
           Logout
