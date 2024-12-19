@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_cors import CORS
+from flask_socketio import SocketIO, join_room, leave_room, emit, rooms
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -12,14 +14,39 @@ CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
 
 load_dotenv()
 
-password = os.getenv("MONGO_PASS")
+# Configure SocketIO with additional settings
+socketio = SocketIO(
+    app,
+    cors_allowed_origins="http://localhost:5173",
+    ping_timeout=60,
+    ping_interval=25
+)
 
+# Enhanced room structure
+rooms = {
+    # 'ROOM123': {
+    #     'host': 'username',
+    #     'users': ['username1', 'username2'],
+    #     'quiz_title': 'Quiz Title',
+    #     'created_at': datetime,
+    #     'files': ['file1.pdf', 'file2.pptx'],
+    #     'status': 'waiting'  # waiting, in_progress, completed
+    # }
+}
+
+# Track socket connections
+socket_connections = {}
+
+password = os.getenv("MONGO_PASS")
 MONGO_URI = f"mongodb+srv://Amogh_kal:{password}@demo.vy7ku.mongodb.net/?retryWrites=true&w=majority&appName=Demo"
 DB_NAME = "Universe"
 
 client = MongoClient(MONGO_URI)
 db = client[DB_NAME]
 users_collection = db["users"]
+quiz_rooms_collection = db["quiz_rooms"]
+
+
 
 @app.route("/register", methods=["POST"])
 def register():
@@ -112,5 +139,199 @@ def upload_files():
         return jsonify({"message": "Files uploaded successfully"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-if __name__=="__main__":
-    app.run(debug=True, port=5000)
+
+# Socket event handlers
+@socketio.on('connect')
+def handle_connect():
+    print(f"Client connected: {request.sid}")
+    socket_connections[request.sid] = {
+        'username': None,
+        'room': None
+    }
+    emit('connection_success', {'message': 'Connected successfully'})
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    print(f"Client disconnected: {request.sid}")
+    # Clean up user from room if they were in one
+    connection_data = socket_connections.get(request.sid)
+    if connection_data and connection_data['room']:
+        handle_leave({
+            'username': connection_data['username'],
+            'roomCode': connection_data['room']
+        })
+    socket_connections.pop(request.sid, None)
+
+@socketio.on('create_room')
+def handle_create_room(data):
+    room_code = data['roomCode']
+    quiz_title = data['quizTitle']
+    creator = data['creator']
+    files = data.get('files', [])
+
+    if room_code in rooms:
+        emit('error', {'message': 'Room already exists'})
+        return
+
+    # Create room with enhanced structure
+    rooms[room_code] = {
+        'host': creator,
+        'users': [creator],
+        'quiz_title': quiz_title,
+        'created_at': datetime.now(),
+        'files': files,
+        'status': 'waiting'
+    }
+
+    # Store room in database
+    quiz_rooms_collection.insert_one({
+        'room_code': room_code,
+        'quiz_title': quiz_title,
+        'host': creator,
+        'created_at': datetime.now(),
+        'files': files
+    })
+
+    # Add user to room
+    join_room(room_code)
+    socket_connections[request.sid] = {
+        'username': creator,
+        'room': room_code
+    }
+
+    emit('room_created', {
+        'roomCode': room_code,
+        'creator': creator,
+        'quizTitle': quiz_title,
+        'users': [creator]
+    })
+
+@socketio.on('join_room')
+def handle_join_room(data):
+    username = data['username']
+    room_code = data['roomCode']
+
+    if room_code not in rooms:
+        emit('error', {'message': 'Room not found'})
+        return
+
+    # Add user to room
+    if username not in rooms[room_code]['users']:
+        rooms[room_code]['users'].append(username)
+    
+    # Update socket connection tracking
+    socket_connections[request.sid] = {
+        'username': username,
+        'room': room_code
+    }
+
+    join_room(room_code)
+    
+    # Notify everyone in the room
+    emit('user_joined', {
+        'username': username,
+        'users': rooms[room_code]['users']
+    }, room=room_code)
+
+    # Send room data to the joining user
+    emit('room_joined', {
+        'roomCode': room_code,
+        'quizTitle': rooms[room_code]['quiz_title'],
+        'users': rooms[room_code]['users'],
+        'host': rooms[room_code]['host']
+    })
+
+@socketio.on('leave_room')
+def handle_leave(data):
+    username = data['username']
+    room_code = data['roomCode']
+
+    if room_code in rooms and username in rooms[room_code]['users']:
+        rooms[room_code]['users'].remove(username)
+        leave_room(room_code)
+        
+        # Update socket connection tracking
+        if request.sid in socket_connections:
+            socket_connections[request.sid]['room'] = None
+            socket_connections[request.sid]['username'] = None
+
+        # Notify others in the room
+        emit('user_left', {
+            'username': username,
+            'users': rooms[room_code]['users']
+        }, room=room_code)
+
+        # Clean up empty rooms
+        if len(rooms[room_code]['users']) == 0:
+            rooms.pop(room_code)
+            quiz_rooms_collection.update_one(
+                {'room_code': room_code},
+                {'$set': {'status': 'completed', 'completed_at': datetime.now()}}
+            )
+
+@socketio.on('rejoin_room')
+def handle_rejoin_room(data):
+    username = data['username']
+    room_code = data['roomCode']
+
+    if room_code not in rooms:
+        emit('error', {'message': 'Room no longer exists'})
+        return
+
+    # Re-add user to room if they're not already in it
+    if username not in rooms[room_code]['users']:
+        rooms[room_code]['users'].append(username)
+    
+    # Update socket connection tracking
+    socket_connections[request.sid] = {
+        'username': username,
+        'room': room_code
+    }
+
+    join_room(room_code)
+    
+    emit('room_joined', {
+        'roomCode': room_code,
+        'quizTitle': rooms[room_code]['quiz_title'],
+        'users': rooms[room_code]['users'],
+        'host': rooms[room_code]['host']
+    })
+
+@socketio.on('ping_room')
+def handle_ping(data):
+    room_code = data['roomCode']
+    if room_code in rooms:
+        emit('room_active', {'roomCode': room_code})
+
+# REST endpoints remain mostly the same, but add new endpoints for room management
+
+@app.route('/rooms/<room_code>', methods=['GET'])
+def get_room_info(room_code):
+    room = rooms.get(room_code)
+    if not room:
+        return jsonify({'error': 'Room not found'}), 404
+    
+    return jsonify({
+        'room_code': room_code,
+        'quiz_title': room['quiz_title'],
+        'host': room['host'],
+        'users': room['users'],
+        'status': room['status'],
+        'created_at': room['created_at'].isoformat()
+    })
+
+@app.route('/rooms/active', methods=['GET'])
+def get_active_rooms():
+    active_rooms = {
+        code: {
+            'quiz_title': room['quiz_title'],
+            'host': room['host'],
+            'user_count': len(room['users']),
+            'status': room['status']
+        }
+        for code, room in rooms.items()
+    }
+    return jsonify(active_rooms)
+
+if __name__ == "__main__":
+    socketio.run(app, debug=True, host="0.0.0.0", port=5000)
