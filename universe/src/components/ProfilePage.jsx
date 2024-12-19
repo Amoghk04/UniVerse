@@ -9,7 +9,7 @@ const ProfilePage = () => {
 
   useEffect(() => {
     if (!username) {
-      navigate('/'); // Redirect to login if no username is found
+      navigate('/home'); // Redirect to login if no username is found
       return;
     }
 

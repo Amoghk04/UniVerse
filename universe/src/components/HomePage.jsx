@@ -4,11 +4,11 @@ import { motion } from 'framer-motion';
 import { 
   BookOpenIcon, 
   UsersIcon, 
-  HeartIcon, 
+  UniversityIcon, 
   SunIcon, 
   MoonIcon, 
   SparklesIcon, 
-  UserIcon 
+  UserIcon, 
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -60,7 +60,7 @@ const HomePage = () => {
     {
       id: 'college-life',
       title: 'College Life',
-      icon: HeartIcon,
+      icon: UniversityIcon,
       description: 'Dynamic platform for campus experiences',
       color: 'bg-gradient-to-br from-pink-500 to-purple-600',
       features: [
