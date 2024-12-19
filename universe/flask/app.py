@@ -90,5 +90,18 @@ def get_user_details(username):
         return jsonify({"error": "User not found"}), 400
     
     return jsonify({"user": user}), 200
+
+@app.route("/upload", methods=["POST"])
+def upload_files():
+    if 'file_0' not in request.files:
+        return jsonify({"error":"No files uploaded"}), 400
+    
+    files = request.files
+    for key in files:
+        file = files[key]
+
+        file.save(f"./uploads/{file.filename}")
+    return jsonify({"message": "Files uploaded successfully"}), 200
+
 if __name__=="__main__":
     app.run(debug=True, port=5000)
