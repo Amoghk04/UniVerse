@@ -216,12 +216,14 @@ const Hangouts = () => {
 
           {/* Add Review Button */}
           <motion.button
+          onClick={() => navigate('/socials/hangouts/add')}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="mt-8 px-8 py-3 bg-blue-500 text-white text-lg rounded-full hover:bg-blue-600 transition"
           >
             <SparklesIcon className="inline-block mr-3 text-yellow-300" size={20} />
             Add Your Review
+
           </motion.button>
         </div>
       </main>

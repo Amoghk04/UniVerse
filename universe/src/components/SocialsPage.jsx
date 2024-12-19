@@ -29,7 +29,7 @@ const SocialsPage = () => {
       icon: CalendarIcon,
       description: 'Stay updated with the latest events happening around.',
       color: 'bg-gradient-to-br from-purple-500 to-pink-600',
-      nav:'#socials/events'
+      nav:'/socials/events'
     },
   ];
 

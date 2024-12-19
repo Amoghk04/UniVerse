@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify,render_template
 from pymongo import MongoClient
 from dotenv import load_dotenv
 import os
@@ -48,6 +48,8 @@ client = MongoClient(MONGO_URI)
 db = client[DB_NAME]
 users_collection = db["users"]
 quiz_rooms_collection = db["quiz_rooms"]
+places_collection = db["places"]
+reviews_collection = db["reviews"]
 
 @app.route("/register", methods=["POST"])
 def register():
@@ -346,6 +348,109 @@ def get_active_rooms():
     }
     return jsonify(active_rooms)
 
+
+def add_place(name, image, category):
+    name_lower = name.lower()  # Convert to lowercase for comparison
+    place = places_collection.find_one({"$expr": {"$eq": [{"$toLower": "$name"}, name_lower]}})
+
+    if not place:
+        places_collection.insert_one({
+            "name": name,
+            "image": image,
+            "avg_rating": 0,
+            "category": category
+        })
+        print(f"Place '{name}' added.")
+    else:
+        print(f"Place '{name}' already exists.")
+
+
+def add_review(place_name, review, rating, usn):
+    place_lower = place_name.lower()
+    place = places_collection.find_one({"$expr": {"$eq": [{"$toLower": "$name"}, place_lower]}})
+    place_name=place["name"]
+    reviews_collection.insert_one({
+        "place_name": place_name,
+        "review": review,
+        "rating": rating,
+        "usn": usn
+    })
+    print(f"Review added for '{place_name}' by user '{usn}'.")
+
+    avg_rating = reviews_collection.aggregate([
+        {"$match": {"place_name": place_name}},
+        {"$group": {"_id": "$place_name", "avg_rating": {"$avg": "$rating"}}}
+    ])
+
+    avg_rating = list(avg_rating)
+    if avg_rating:
+        avg_rating = avg_rating[0]["avg_rating"]
+        places_collection.update_one(
+            {"name": place_name},
+            {"$set": {"avg_rating": avg_rating}}
+        )
+        print(f"Avg rating for '{place_name}' updated to {avg_rating:.2f}.")
+    else:
+        print(f"Error calculating average rating for '{place_name}'.")
+
+
+@app.route("/place", methods=["GET"])
+def enter_place_name():
+    place_name = request.args.get("place_name")  # Get place_name from query parameter
+
+    if not place_name:
+        return jsonify({"error": "Place name is required"}), 400  # Handle missing place_name
+
+    place_name = place_name.lower()  # Convert to lowercase for comparison
+
+    # Use $toLower in MongoDB query for case-insensitive comparison
+    place = places_collection.find_one({"$expr": {"$eq": [{"$toLower": "$name"}, place_name]}})
+
+    if place:
+        return jsonify({"exists": True}), 200  # Place exists
+    else:
+        return jsonify({"exists": False}), 200  # Place doesn't exist
+
+
+
+@app.route("/add_place", methods=["POST"])
+def add_place_route():
+    data = request.get_json()
+    placename = data.get("placename")
+    image = data.get("image")
+    category = data.get("category")
+
+    if not placename or not image or not category:
+        return jsonify({"error": "Missing required fields"}), 400
+
+    # Add the place
+    add_place(placename, image, category)
+
+    return jsonify({"message": f"Place '{placename}' added successfully"}), 200
+
+
+@app.route("/add_review", methods=["POST"])
+def add_review_route():
+    data = request.get_json()
+    placename = data.get("placename").lower()  # Convert to lowercase for comparison
+    review = data.get("review")
+    rating = data.get("rating")
+    usn = data.get("usn")
+
+    if not placename or not review or not rating or not usn:
+        return jsonify({"error": "Missing required fields"}), 400
+
+    # Case-insensitive search for place name
+    place = places_collection.find_one({"$expr": {"$eq": [{"$toLower": "$name"}, placename]}})
+
+    if not place:
+        print('Not found')
+        return jsonify({"error": f"Place '{placename}' not found"}), 404
+
+    # Add the review and update avg_rating
+    add_review(placename, review, int(rating), usn)
+
+    return jsonify({"message": f"Review for '{placename}' added successfully"}), 200
 
 if __name__=="__main__":
     socketio.run(app, debug=True, host="0.0.0.0", port=5000)
