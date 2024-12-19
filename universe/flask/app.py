@@ -119,14 +119,14 @@ def get_user_details(username):
     
     return jsonify({"user": user}), 200
 
-@app.route("/upload", methods=["POST"])
-def upload_files():
+@app.route("/<username>/upload", methods=["POST"])
+def upload_files(username):
     if not request.files:
         return jsonify({"error": "No files uploaded"}), 400
     
     try:
         # Create uploads directory if it doesn't exist
-        os.makedirs("./uploads", exist_ok=True)
+        os.makedirs(f"./uploads_{username}", exist_ok=True)
         
         files = request.files
         for key in files:
@@ -135,8 +135,11 @@ def upload_files():
                 # Secure the filename to prevent directory traversal attacks
                 from werkzeug.utils import secure_filename
                 filename = secure_filename(file.filename)
-                file.save(os.path.join("uploads", filename))
+                file.save(os.path.join(f"uploads_{username}", filename))
         
+        generate_data_store(username)
+        print("Generated chunks")
+
         return jsonify({"message": "Files uploaded successfully"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -151,6 +154,7 @@ def query_data(username):
 
         return jsonify({"answer":result})
     except Exception as e:
+        print(e)
         return jsonify({"Error": str(e)}), 500
 
 # Socket event handlers
