@@ -128,3 +128,9 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Other
+universe/flask/__pycache__
+universe/flask/processed_files.txt
+universe/flask/uploads
+universe/flask/chroma
