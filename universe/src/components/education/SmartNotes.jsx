@@ -3,13 +3,17 @@ import universeLogo from "/src/assets/UniVerse.png"; // Replace with your logo
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { SunIcon, MoonIcon } from 'lucide-react';
+import { Loader2 } from "lucide-react";
 
 const RAGInterface = () => {
   const [files, setFiles] = useState([]);
   const [chat, setChat] = useState([]);
   const [query, setQuery] = useState("");
   const [darkMode, setDarkMode] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState({ show: false, message: '', isError: false });
   const navigate = useNavigate();
+  const user = localStorage.getItem("currentUsername");
 
   // Theme management with local storage
   useEffect(() => {
@@ -38,17 +42,6 @@ const RAGInterface = () => {
 
     setFiles((prevFiles) => [...prevFiles, ...uploadedFiles]);
   };
-  /*const handleFileUpload = (e) => {
-    const files = Array.from(e.target.files).filter((file) =>
-      ["application/pdf", "application/vnd.ms-powerpoint", "application/vnd.openxmlformats-officedocument.presentationml.presentation", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"].includes(file.type)
-    );
-
-    if (files.length !== e.target.files.length) {
-      alert("Only PDF, PPT, and DOC files are allowed.");
-    }
-
-    setUploadedFiles((prevFiles) => [...prevFiles, ...files]);
-  };*/
 
   const sendFilesToServer = async () => {
     if (files.length === 0) {
@@ -56,16 +49,18 @@ const RAGInterface = () => {
       return;
     }
     
+    setIsUploading(true);
+    setUploadStatus({ show: false, message: '', isError: false });
+    
     const formData = new FormData();
     files.forEach((file, index) => {
-      formData.append(`file_${index}`, file); // Match the backend expectation
+      formData.append(`file_${index}`, file);
     });
   
     try {
-      const response = await fetch("http://127.0.0.1:5000/upload", {
+      const response = await fetch(`http://127.0.0.1:5000/${user}/upload`, {
         method: "POST",
         body: formData,
-        // Remove the Content-Type header - let the browser set it with boundary
         headers: {
           "Access-Control-Allow-Origin": "*",
         },
@@ -77,11 +72,21 @@ const RAGInterface = () => {
   
       const data = await response.json();
       console.log("Server Response:", data);
-      alert("Files uploaded successfully!");
-      setFiles([]); // Clear files after successful upload
+      setUploadStatus({ 
+        show: true, 
+        message: "Files uploaded successfully!", 
+        isError: false 
+      });
+      setFiles([]);
     } catch (error) {
       console.error("Error uploading files:", error);
-      alert("Failed to upload files.");
+      setUploadStatus({ 
+        show: true, 
+        message: "Failed to upload files. Please try again.", 
+        isError: true 
+      });
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -91,7 +96,7 @@ const RAGInterface = () => {
     setChat((prev) => [...prev, { type: "question", content: query }]);
 
     try {
-      const response = await fetch("http://localhost:5000/query", {
+      const response = await fetch(`http://127.0.0.1:5000/${user}/query`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -157,13 +162,34 @@ const RAGInterface = () => {
               <li key={index} className="mt-1 truncate">{file.name}</li>
             ))}
           </ul>
-          <button
-            onClick={sendFilesToServer}
-            className="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            Upload to Server
-          </button>
-        </aside>
+          <aside className="col-span-3 bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+            
+            <button
+              onClick={sendFilesToServer}
+              disabled={isUploading}
+              className={`mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed flex items-center justify-center space-x-2`}
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <span>Uploading...</span>
+                </>
+              ) : (
+                <span>Upload to Server</span>
+              )}
+            </button>
+
+            {uploadStatus.show && (
+              <div className={`mt-4 p-3 rounded-lg ${
+                uploadStatus.isError 
+                  ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' 
+                  : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+              }`}>
+                {uploadStatus.message}
+              </div>
+            )}
+          </aside>
+    </aside>
 
         {/* Chat Section */}
         <section className="col-span-9 bg-white dark:bg-gray-800 rounded-lg shadow p-6 flex flex-col">

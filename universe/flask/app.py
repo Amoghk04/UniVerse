@@ -4,6 +4,9 @@ from dotenv import load_dotenv
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_cors import CORS
+from langchain_loader import generate_data_store
+from query_data import get_answer
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
@@ -91,26 +94,41 @@ def get_user_details(username):
     
     return jsonify({"user": user}), 200
 
-@app.route("/upload", methods=["POST"])
-def upload_files():
+@app.route("/<user>/upload", methods=["POST"])
+def upload_files(username):
     if not request.files:
         return jsonify({"error": "No files uploaded"}), 400
     
     try:
-        # Create uploads directory if it doesn't exist
         os.makedirs("./uploads", exist_ok=True)
         
         files = request.files
+
         for key in files:
             file = files[key]
-            if file.filename:  # Check if a file was actually selected
-                # Secure the filename to prevent directory traversal attacks
-                from werkzeug.utils import secure_filename
+            
+            if file.filename:
                 filename = secure_filename(file.filename)
-                file.save(os.path.join("uploads", filename))
+                file.save(os.path.join(f"uploads_{username}", filename))
+
+        generate_data_store()
+        print("chunks generated")
         
         return jsonify({"message": "Files uploaded successfully"}), 200
+    
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.route("/<username>/query", methods=["POST"])
+def query_data(username):
+    try:
+        data = request.json
+        query = data.get("query")
+        result = get_answer(username, query, MONGO_URI)
+
+        return jsonify({"answer":result})
+    except Exception as e:
+        return jsonify({"Error": str(e)}), 500
+
 if __name__=="__main__":
     app.run(debug=True, port=5000)
