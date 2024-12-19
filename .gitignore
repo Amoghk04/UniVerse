@@ -132,3 +132,4 @@ dist
 # Other
 universe/flask/__pycache__
 universe/flask/processed_files.txt
+universe/flask/uploads
