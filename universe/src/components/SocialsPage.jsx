@@ -13,6 +13,7 @@ const SocialsPage = () => {
       icon: UsersIcon,
       description: 'Connect with alumni to expand your network.',
       color: 'bg-gradient-to-br from-green-500 to-teal-600',
+      nav:'#socials/alumni'
     },
     {
       id: 'hangouts',
@@ -20,6 +21,7 @@ const SocialsPage = () => {
       icon: MapPinIcon,
       description: 'Discover the best hangout spots near you.',
       color: 'bg-gradient-to-br from-yellow-500 to-orange-600',
+      nav:'/socials/hangouts'
     },
     {
       id: 'events',
@@ -27,6 +29,7 @@ const SocialsPage = () => {
       icon: CalendarIcon,
       description: 'Stay updated with the latest events happening around.',
       color: 'bg-gradient-to-br from-purple-500 to-pink-600',
+      nav:'#socials/events'
     },
   ];
 
@@ -68,7 +71,7 @@ const SocialsPage = () => {
                 transform transition-all duration-200 
                 hover:shadow-xl cursor-pointer
               `}
-              onClick={() => console.log(`${widget.title} clicked`)}
+              onClick={() => navigate(widget.nav)}
             >
               <div className="flex flex-col items-center">
                 <widget.icon size={48} className="mb-4" />
