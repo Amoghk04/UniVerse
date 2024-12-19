@@ -1,8 +1,7 @@
-// Import necessary libraries
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { BookOpenIcon, SearchIcon, FileTextIcon } from 'lucide-react';
+import { BookOpenIcon, SearchIcon, GamepadIcon } from 'lucide-react';
 
 const EducationPage = () => {
   const navigate = useNavigate();
@@ -14,6 +13,7 @@ const EducationPage = () => {
       icon: BookOpenIcon,
       description: 'Access and organize your notes efficiently.',
       color: 'bg-gradient-to-br from-blue-500 to-indigo-600',
+      action: () => navigate('/notes-repository'),
     },
     {
       id: 'search',
@@ -21,15 +21,18 @@ const EducationPage = () => {
       icon: SearchIcon,
       description: 'Discover academic resources with AI assistance.',
       color: 'bg-gradient-to-br from-green-500 to-teal-600',
+      action: () => navigate('/ai-academic-search'),
     },
     {
       id: 'quiz',
       title: 'Interactive Quiz Rooms',
-      icon: FileTextIcon,
+      icon: GamepadIcon, // Use GamepadIcon instead of PuzzlePieceIcon
       description: 'Engage in interactive and gamified quizzes.',
       color: 'bg-gradient-to-br from-pink-500 to-purple-600',
+      action: () => navigate('/quiz-rooms'),
     },
   ];
+  
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
@@ -48,7 +51,7 @@ const EducationPage = () => {
         <motion.h2
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.3 }}
           className="text-4xl font-extrabold text-center mb-12 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600"
         >
           Explore Education Tools
@@ -69,7 +72,7 @@ const EducationPage = () => {
                 transform transition-all duration-200 
                 hover:shadow-xl cursor-pointer
               `}
-              onClick={() => console.log(`${widget.title} clicked`)}
+              onClick={widget.action}
             >
               <div className="flex flex-col items-center">
                 <widget.icon size={48} className="mb-4" />
