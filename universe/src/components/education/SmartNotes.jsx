@@ -28,34 +28,53 @@ const RAGInterface = () => {
   };
 
   const handleFileUpload = (e) => {
-    const uploadedFiles = Array.from(e.target.files);
+    const uploadedFiles = Array.from(e.target.files).filter((file) =>
+        ["application/pdf", "application/vnd.ms-powerpoint", "application/vnd.openxmlformats-officedocument.presentationml.presentation", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"].includes(file.type)
+    );
+
+    if (files.length !== e.target.files.length) {
+        alert("Only PDF, PPT, and DOC files are allowed.");
+    }
+
     setFiles((prevFiles) => [...prevFiles, ...uploadedFiles]);
   };
+  /*const handleFileUpload = (e) => {
+    const files = Array.from(e.target.files).filter((file) =>
+      ["application/pdf", "application/vnd.ms-powerpoint", "application/vnd.openxmlformats-officedocument.presentationml.presentation", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"].includes(file.type)
+    );
+
+    if (files.length !== e.target.files.length) {
+      alert("Only PDF, PPT, and DOC files are allowed.");
+    }
+
+    setUploadedFiles((prevFiles) => [...prevFiles, ...files]);
+  };*/
 
   const sendFilesToServer = async () => {
     if (files.length === 0) {
       alert("No files to upload.");
       return;
     }
-
+    
     const formData = new FormData();
-    files.forEach((file) => {
-      formData.append("files", file); // Append each file to FormData
+    files.forEach((file, index) => {
+      formData.append(`file_${index}`, file); // Match the backend expectation
     });
-
+  
     try {
       const response = await fetch("http://127.0.0.1:5000/upload", {
         method: "POST",
         body: formData,
+        // Remove the Content-Type header - let the browser set it with boundary
         headers: {
           "Access-Control-Allow-Origin": "*",
         },
       });
-
+  
       if (!response.ok) {
         throw new Error("Failed to upload files.");
       }
-
+  
       const data = await response.json();
       console.log("Server Response:", data);
       alert("Files uploaded successfully!");

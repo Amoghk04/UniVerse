@@ -5,7 +5,7 @@ import { FaSun, FaMoon } from "react-icons/fa"; // Install react-icons for icons
 const QuizHome = () => {
   const [roomCode, setRoomCode] = useState("");
   const [quizTitle, setQuizTitle] = useState("");
-  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [files, setUploadedFiles] = useState([]);
   const [darkMode, setDarkMode] = useState(false);
 
   const toggleTheme = () => {
@@ -26,12 +26,12 @@ const QuizHome = () => {
       alert("Please enter a quiz title.");
       return;
     }
-    if (uploadedFiles.length === 0) {
+    if (files.length === 0) {
       alert("Please upload at least one document.");
       return;
     }
     console.log("Creating room with title:", quizTitle);
-    console.log("Uploaded files:", uploadedFiles);
+    console.log("Uploaded files:", files);
     // Implement create room logic here
   };
 
@@ -45,6 +45,41 @@ const QuizHome = () => {
     }
 
     setUploadedFiles((prevFiles) => [...prevFiles, ...files]);
+  };
+
+  const sendFilesToServer = async () => {
+    if (files.length === 0) {
+      alert("No files to upload.");
+      return;
+    }
+    
+    const formData = new FormData();
+    files.forEach((file, index) => {
+      formData.append(`file_${index}`, file); // Match the backend expectation
+    });
+  
+    try {
+      const response = await fetch("http://127.0.0.1:5000/upload", {
+        method: "POST",
+        body: formData,
+        // Remove the Content-Type header - let the browser set it with boundary
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to upload files.");
+      }
+  
+      const data = await response.json();
+      console.log("Server Response:", data);
+      alert("Files uploaded successfully!");
+      setFiles([]); // Clear files after successful upload
+    } catch (error) {
+      console.error("Error uploading files:", error);
+      alert("Failed to upload files.");
+    }
   };
 
   return (
@@ -103,14 +138,14 @@ const QuizHome = () => {
             className={`${darkMode ? "bg-gray-700 text-gray-100" : "bg-white"} w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring mb-4`}
           />
           <ul className="mb-4">
-            {uploadedFiles.map((file, index) => (
+            {files.map((file, index) => (
               <li key={index} className="text-sm">
                 {file.name}
               </li>
             ))}
           </ul>
           <button
-            onClick={handleCreateRoom}
+            onClick={sendFilesToServer}
             className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
           >
             Create Room

@@ -93,15 +93,24 @@ def get_user_details(username):
 
 @app.route("/upload", methods=["POST"])
 def upload_files():
-    if 'file_0' not in request.files:
-        return jsonify({"error":"No files uploaded"}), 400
+    if not request.files:
+        return jsonify({"error": "No files uploaded"}), 400
     
-    files = request.files
-    for key in files:
-        file = files[key]
-
-        file.save(f"./uploads/{file.filename}")
-    return jsonify({"message": "Files uploaded successfully"}), 200
-
+    try:
+        # Create uploads directory if it doesn't exist
+        os.makedirs("./uploads", exist_ok=True)
+        
+        files = request.files
+        for key in files:
+            file = files[key]
+            if file.filename:  # Check if a file was actually selected
+                # Secure the filename to prevent directory traversal attacks
+                from werkzeug.utils import secure_filename
+                filename = secure_filename(file.filename)
+                file.save(os.path.join("uploads", filename))
+        
+        return jsonify({"message": "Files uploaded successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 if __name__=="__main__":
     app.run(debug=True, port=5000)
