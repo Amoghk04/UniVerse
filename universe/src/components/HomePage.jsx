@@ -81,10 +81,12 @@ const HomePage = () => {
       <header className="sticky top-0 z-50 backdrop-blur-md bg-white/70 dark:bg-gray-900/70 shadow-sm">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-3">
-            <SparklesIcon className="text-blue-600 dark:text-blue-400" size={32} />
-            <h1 className="text-2xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
-              UniVerse
-            </h1>
+          <img
+          src="./src/assets/UniVerse.png" // Replace with the correct image path
+          alt="Login Image"
+          className="w-52 h-25 mx-auto my-4 mb-3 rounded-2xl border-2 border-white/10"
+        />
+            
           </div>
           <div className="flex items-center space-x-4">
             <motion.button 
