@@ -9,6 +9,7 @@ import CollegeLifePage from './components/CollegeLifePage';
 import './index.css';
 import UnifiedAuthPage from './components/UnifiedAuthPage';
 import RAGInterface from './components/education/SmartNotes';
+import QuizHome from './components/education/QuizRoom/quizHome';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
@@ -21,6 +22,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <Route path="/socials" element={<SocialsPage />} />
         <Route path="/college-life" element={<CollegeLifePage />} />
         <Route path="/education/notes" element={<RAGInterface/>} />
+        <Route path="/education/quiz" element={<QuizHome/>} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>
