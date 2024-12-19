@@ -68,9 +68,14 @@ const UnifiedAuthPage = () => {
         if (currentForm === 'login') {
           // Store the username in local storage
           localStorage.setItem('currentUsername', formData.username);
+          navigate('/home');
         }
-  
-        navigate('/home');
+        else if (currentForm === "register") {
+          navigate('/');
+        }
+        else if (currentForm === "forgotPassword") {
+          navigate("/home");
+        }
       } else {
         const errorMessage = result.error || result.message || 'Something went wrong';
         console.error(errorMessage);
