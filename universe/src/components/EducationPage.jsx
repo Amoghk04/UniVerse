@@ -69,7 +69,7 @@ const EducationPage = () => {
                 transform transition-all duration-200 
                 hover:shadow-xl cursor-pointer
               `}
-              onClick={() => console.log(`${widget.title} clicked`)}
+              onClick={() => navigate(`/education/${widget.id}`)}
             >
               <div className="flex flex-col items-center">
                 <widget.icon size={48} className="mb-4" />
