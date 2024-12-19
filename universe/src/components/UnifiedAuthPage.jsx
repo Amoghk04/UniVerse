@@ -72,10 +72,13 @@ const UnifiedAuthPage = () => {
   
         navigate('/home');
       } else {
-        console.error(result.message || 'Something went wrong');
+        const errorMessage = result.error || result.message || 'Something went wrong';
+        console.error(errorMessage);
+        alert(errorMessage); 
       }
     } catch (error) {
       console.error('Error:', error);
+      alert('An unexpected error occurred. Please try again later.');
     }
   };
   

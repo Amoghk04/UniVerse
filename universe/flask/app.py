@@ -62,14 +62,16 @@ def forgot_password():
     data = request.json
     username = data.get("username")
     email = data.get("email")
-    new_password = data.get("new_password")
-    confirm_password = data.get("confirm_password")
+    new_password = data.get("password")
+    confirm_password = data.get("confirmPassword")
+
+    print(username, email, new_password, confirm_password)
 
     if not username or not email or not new_password or not confirm_password:
-        return jsonify({"error": "All fields are required"}), 400
+        return jsonify({"error": "All fields are required"}), 401
 
     if new_password != confirm_password:
-        return jsonify({"error": "Passwords do not match"}), 400
+        return jsonify({"error": "Passwords do not match"}), 402
 
     user = users_collection.find_one({"username": username, "email": email})
     if not user:
