@@ -7,10 +7,9 @@ from flask_cors import CORS
 from flask_socketio import SocketIO, join_room, leave_room, emit, rooms
 from bson import Binary
 import base64
-
 from datetime import datetime
 from langchain_loader import generate_data_store
-from query_data import get_answer
+from query_data import get_answer, delete_memory
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
@@ -169,6 +168,18 @@ def query_data(username):
         print(e)
         return jsonify({"Error": str(e)}), 500
 
+@app.route("/<username>/delete_memory", methods=["DELETE"])
+def delete_mem(username):
+    try:
+        result = delete_memory(username, MONGO_URI)
+        if result:
+            return jsonify({"message": "Memory successfully deleted"}), 200
+        else:
+            return jsonify({"message": "No memory found for this user"}), 404
+    except Exception as e:
+        print(f"Error deleting memory: {e}")
+        return jsonify({"error": str(e)}), 500
+    
 # Socket event handlers
 @socketio.on('connect')
 def handle_connect():
@@ -581,6 +592,7 @@ def upload_or_list_notes():
                 "branch": branch,
                 "subject": subject,
                 "filename": file.filename,
+                "username": request.form['username'],
                 "file_data": file.read()  # Store binary file data
             })
 

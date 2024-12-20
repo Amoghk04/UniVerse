@@ -42,6 +42,26 @@ def save_memory(user_id, memory, mongodb_uri):
     collection = db.memory
     collection.update_one({"user_id": user_id}, {"$set": {"memory": memory}}, upsert=True)
 
+def delete_memory(user_id, mongodb_uri):
+    client = None
+    try:
+        client = MongoClient(mongodb_uri)
+        db = client.Universe
+        collection = db.memory
+        
+        # Delete and get result
+        result = collection.delete_one({"user_id": user_id})
+        
+        # Return True if something was deleted, False otherwise
+        return result.deleted_count > 0
+        
+    except Exception as e:
+        print(f"Database error: {e}")
+        raise
+    finally:
+        if client:
+            client.close()
+
 def get_answer(user_id, query, mongodb_uri):
     # Load persistent memory from MongoDB
     memory = load_memory(user_id, mongodb_uri)

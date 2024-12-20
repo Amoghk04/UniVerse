@@ -13,12 +13,14 @@ const Notes = () => {
     branch: "",
     subject: "",
     file: null,
+    username: ""
   });
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedSemesters, setExpandedSemesters] = useState({});
   const [expandedBranches, setExpandedBranches] = useState({});
   const [expandedSubjects, setExpandedSubjects] = useState({});
   const navigate = useNavigate();
+  const username = localStorage.getItem("currentUsername");
   const url = "http://127.0.0.1:5000"
 
   useEffect(() => {
@@ -52,6 +54,7 @@ const Notes = () => {
       formData.append("branch", newEntry.branch);
       formData.append("subject", newEntry.subject);
       formData.append("file", newEntry.file);
+      formData.append("username", username);
 
       // Upload the file to the backend
       const response = await axios.post(`${url}/notes/upload`, formData, {
@@ -279,9 +282,9 @@ const Notes = () => {
             onClick={() => setShowPopup(true)}
             className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            Add File +
+            Add File + <br></br> (Max 16MB)
           </button>
-          <h3 className="text-lg font-semibold mt-6 text-gray-800 dark:text-gray-200">File Structure</h3>
+          <h3 className="text-lg font-semibold mt-6 text-gray-800 dark:text-gray-200">Semesters</h3>
           <div className="mt-4">{renderHierarchy(hierarchy)}</div>
         </aside>
 
