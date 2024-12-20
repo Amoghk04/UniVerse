@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { motion } from 'framer-motion';
+import { SunIcon, MoonIcon, UserIcon} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Activities = () => {
   const [activities, setActivities] = useState([]);
@@ -7,6 +10,9 @@ const Activities = () => {
   const [selectedPlace, setSelectedPlace] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate();
+
+const [darkMode, setDarkMode] = useState(false);
 
   const fetchActivities = async () => {
     try {
@@ -40,13 +46,61 @@ const Activities = () => {
     fetchActivities();
   }, []);
 
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      setDarkMode(savedTheme === 'dark');
+      document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+    }
+  }, []);
+
+  const toggleDarkMode = () => {
+    const newMode = !darkMode;
+    setDarkMode(newMode);
+    localStorage.setItem('theme', newMode ? 'dark' : 'light');
+    document.documentElement.classList.toggle('dark', newMode);
+  };
+
+
   if (loading) {
     return <div className="text-center text-white">Loading...</div>;
   }
 
+
+
   return (
-    <div className="bg-gray-900 text-white min-h-screen p-6">
-      <h1 className="text-3xl font-bold text-center mb-8">Activities</h1>
+    <div
+      className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900 text-white' : 'bg-white text-gray-900'} overflow-x-hidden`}
+    >
+      <header className="bg-white dark:bg-gray-800 shadow-md py-4 flex items-center justify-between px-4 w-full">
+        <button
+          onClick={() => window.history.back()}
+          className="px-3 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition"
+        >
+          Back
+        </button>
+        <div className="flex-1 flex justify-center">
+          <h1 className="text-2xl font-bold">&nbsp;&nbsp;&nbsp;Activities</h1>
+        </div>
+        <div className="flex items-center space-x-4">
+          <motion.button
+            onClick={toggleDarkMode}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          >
+            {darkMode ? <SunIcon className="text-yellow-500" /> : <MoonIcon className="text-blue-600" />}
+          </motion.button>
+          <motion.button
+            onClick={() => navigate('/profile')}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          >
+            <UserIcon className="text-gray-800 dark:text-gray-200" />
+          </motion.button>
+        </div>
+      </header>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {activities.map((activity) => (
           <div
