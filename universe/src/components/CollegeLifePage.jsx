@@ -14,6 +14,7 @@ const CollegeLifePage = () => {
       icon: HeartIcon,
       description: 'Find and connect with like-minded individuals.',
       color: 'bg-gradient-to-br from-pink-500 to-purple-600',
+      action: () => console.log('Smart Matching Platform clicked'), // Placeholder action
     },
     {
       id: 'gaming',
@@ -21,6 +22,7 @@ const CollegeLifePage = () => {
       icon: GamepadIcon,
       description: 'Join gaming communities and play together.',
       color: 'bg-gradient-to-br from-blue-500 to-indigo-600',
+      action: () => console.log('Gaming Communities clicked'), // Placeholder action
     },
     {
       id: 'clubs',
@@ -28,6 +30,7 @@ const CollegeLifePage = () => {
       icon: UsersIcon,
       description: 'Participate in club activities and events.',
       color: 'bg-gradient-to-br from-green-500 to-teal-600',
+      action: () => navigate('/club-interaction-spaces'), // Navigates to ClubInteractionSpaces
     },
   ];
 
@@ -69,7 +72,7 @@ const CollegeLifePage = () => {
                 transform transition-all duration-200 
                 hover:shadow-xl cursor-pointer
               `}
-              onClick={() => console.log(`${widget.title} clicked`)}
+              onClick={widget.action}
             >
               <div className="flex flex-col items-center">
                 <widget.icon size={48} className="mb-4" />
