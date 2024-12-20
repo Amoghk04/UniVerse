@@ -12,6 +12,8 @@ const RAGInterface = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState({ show: false, message: '', isError: false });
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteStatus, setDeleteStatus] = useState({ show: false, message: '', isError: false });
   const navigate = useNavigate();
   const user = localStorage.getItem("currentUsername");
 
@@ -90,6 +92,49 @@ const RAGInterface = () => {
     }
   };
 
+  const handleDeleteMemory = async () => {
+    if (!window.confirm('Are you sure you want to delete all memory? This action cannot be undone.')) {
+      return;
+    }
+  
+    setIsDeleting(true);
+    setDeleteStatus({ show: false, message: '', isError: false });
+  
+    try {
+      const response = await fetch(`http://127.0.0.1:5000/${user}/delete_memory`, {
+        method: 'DELETE',
+        headers: {
+          'Access-Control-Allow-Origin': '*'
+        }
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to delete memory');
+      }
+  
+      setDeleteStatus({
+        show: true,
+        message: 'Memory deleted successfully!',
+        isError: false
+      });
+      
+      // Clear the chat history as well
+      setChat([]);
+      // Clear the files list
+      setFiles([]);
+      
+    } catch (error) {
+      console.error('Error deleting memory:', error);
+      setDeleteStatus({
+        show: true,
+        message: 'Failed to delete memory. Please try again.',
+        isError: true
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const handleQuerySubmit = async () => {
     if (query.trim() === "") return;
 
@@ -148,48 +193,73 @@ const RAGInterface = () => {
         
         {/* Sidebar */}
         <aside className="col-span-3 bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-          <h2 className="text-lg font-semibold mb-4">Upload Files</h2>
-          <input
-            type="file"
-            accept=".pdf,.ppt,.pptx"
-            multiple
-            onChange={handleFileUpload}
-            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:border-0 file:bg-gray-100 dark:file:bg-gray-700 file:text-gray-700 dark:file:text-gray-300 hover:file:bg-gray-200 dark:hover:file:bg-gray-600"
-          />
-          <h3 className="text-sm font-medium mt-6 text-gray-800 dark:text-gray-200">Uploaded Files</h3>
-          <ul className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            {files.map((file, index) => (
-              <li key={index} className="mt-1 truncate">{file.name}</li>
-            ))}
-          </ul>
-          <aside className="col-span-3 bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-            
-            <button
-              onClick={sendFilesToServer}
-              disabled={isUploading}
-              className={`mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed flex items-center justify-center space-x-2`}
-            >
-              {isUploading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  <span>Uploading...</span>
-                </>
-              ) : (
-                <span>Upload to Server</span>
-              )}
-            </button>
+  <h2 className="text-lg font-semibold mb-4">Upload Files</h2>
+  <input
+    type="file"
+    accept=".pdf,.ppt,.pptx"
+    multiple
+    onChange={handleFileUpload}
+    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:border-0 file:bg-gray-100 dark:file:bg-gray-700 file:text-gray-700 dark:file:text-gray-300 hover:file:bg-gray-200 dark:hover:file:bg-gray-600"
+  />
+  <h3 className="text-sm font-medium mt-6 text-gray-800 dark:text-gray-200">Uploaded Files</h3>
+  <ul className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+    {files.map((file, index) => (
+      <li key={index} className="mt-1 truncate">{file.name}</li>
+    ))}
+  </ul>
+  
+  <button
+    onClick={sendFilesToServer}
+    disabled={isUploading}
+    className={`mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed flex items-center justify-center space-x-2`}
+  >
+    {isUploading ? (
+      <>
+        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+        <span>Uploading...</span>
+      </>
+    ) : (
+      <span>Upload to Server</span>
+    )}
+  </button>
 
-            {uploadStatus.show && (
-              <div className={`mt-4 p-3 rounded-lg ${
-                uploadStatus.isError 
-                  ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' 
-                  : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-              }`}>
-                {uploadStatus.message}
-              </div>
-            )}
-          </aside>
-    </aside>
+  {uploadStatus.show && (
+    <div className={`mt-4 p-3 rounded-lg ${
+      uploadStatus.isError 
+        ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' 
+        : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+    }`}>
+      {uploadStatus.message}
+    </div>
+  )}
+
+  <div className="mt-6 border-t pt-4">
+    <button
+      onClick={handleDeleteMemory}
+      disabled={isDeleting}
+      className={`w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed flex items-center justify-center space-x-2`}
+    >
+      {isDeleting ? (
+        <>
+          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+          <span>Deleting...</span>
+        </>
+      ) : (
+        <span>Delete All Memory</span>
+      )}
+    </button>
+
+    {deleteStatus.show && (
+      <div className={`mt-4 p-3 rounded-lg ${
+        deleteStatus.isError 
+          ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' 
+          : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+      }`}>
+        {deleteStatus.message}
+      </div>
+    )}
+  </div>
+</aside>
 
         {/* Chat Section */}
         <section className="col-span-9 bg-white dark:bg-gray-800 rounded-lg shadow p-6 flex flex-col">

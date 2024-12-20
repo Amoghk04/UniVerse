@@ -6,8 +6,7 @@ export const validateForm = (formType, formData) => {
         return 'Passwords do not match';
       }
       
-      // TODO : Change password length to 8 later
-      if (password.length < 0) {
+      if (password.length < 8) {
         return 'Password must be at least 8 characters long';
       }
     }
