@@ -282,6 +282,13 @@ def handle_leave(data):
                 {'$set': {'status': 'completed', 'completed_at': datetime.now()}}
             )
 
+@socketio.on('start_game')
+def handle_start_game(data):
+    room_code = data['roomCode']
+    # Broadcast to all users in the room
+    socketio.emit('game_started', room=room_code)
+
+
 @socketio.on('rejoin_room')
 def handle_rejoin_room(data):
     username = data['username']

@@ -78,6 +78,12 @@ const QuizRoom = () => {
       setRoomUsers([data.creator]);
     });
 
+    // Add game start event listener
+    socket.on("game_started", () => {
+      console.log("Game started - redirecting to home page");
+      navigate('/home');
+    });
+
     socket.on("error", (error) => {
       console.error("Server error:", error);
       alert(`Error: ${error.message}`);
@@ -89,9 +95,10 @@ const QuizRoom = () => {
       socket.off("user_joined");
       socket.off("user_left");
       socket.off("room_created");
+      socket.off("game_started");
       socket.off("error");
     };
-  }, [socket]);
+  }, [socket, navigate]);
 
   // Keep alive ping
   useEffect(() => {
@@ -112,14 +119,13 @@ const QuizRoom = () => {
     
     const formData = new FormData();
     files.forEach((file, index) => {
-      formData.append(`file_${index}`, file); // Match the backend expectation
+      formData.append(`file_${index}`, file);
     });
   
     try {
       const response = await fetch("http://127.0.0.1:5000/upload", {
         method: "POST",
         body: formData,
-        // Remove the Content-Type header - let the browser set it with boundary
         headers: {
           "Access-Control-Allow-Origin": "*",
         },
@@ -132,7 +138,7 @@ const QuizRoom = () => {
       const data = await response.json();
       console.log("Server Response:", data);
       alert("Files uploaded successfully!");
-      setFiles([]); // Clear files after successful upload
+      setFiles([]);
     } catch (error) {
       console.error("Error uploading files:", error);
       alert("Failed to upload files.");
@@ -188,7 +194,7 @@ const QuizRoom = () => {
       roomCode: newRoomCode,
       quizTitle,
       creator: userInput,
-      files: files.map(f => f.name) // Send file info to server
+      files: files.map(f => f.name)
     });
 
     setRoomCode(newRoomCode);
@@ -202,6 +208,15 @@ const QuizRoom = () => {
       setUsername("");
     }
   }, [socket, currentRoom, username]);
+
+  const handleStartGame = () => {
+    if (socket && currentRoom) {
+      socket.emit("start_game", { roomCode: currentRoom });
+      console.log("Game Starting!");
+      // No need to navigate here as we'll handle it through the socket event
+    }
+  };
+  
 
   return (
     <div className={`${darkMode ? "bg-gray-900 text-gray-100" : "bg-gray-100 text-gray-800"} min-h-screen`}>
@@ -321,6 +336,14 @@ const QuizRoom = () => {
                   </div>
                 ))}
               </div>
+            </div>
+                      <div className="mt-6 text-center">
+              <button
+                onClick={handleStartGame}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Start Game
+              </button>
             </div>
           </div>
         </section>
