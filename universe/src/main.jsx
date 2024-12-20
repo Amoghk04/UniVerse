@@ -39,6 +39,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <Route path="/education/smart-notes" element={<RAGInterface />} />
         <Route path="/education/quiz" element={<QuizRoom />} />
         <Route path="/education/notes" element={<Notes />} />
+        <Route path="/education/quizGame" element={<QuizGame/>} />
 
         {/* Socials Routes */}
         <Route path="/socials" element={<SocialsPage />} />
@@ -52,7 +53,6 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         {/* College Life Routes */}
         <Route path="/college-life" element={<CollegeLifePage />} />
         <Route path="/club-interaction-spaces" element={<ClubInteractionSpaces />} />
-        <Route path="/education/quizGame" element={<QuizGame/>} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>
