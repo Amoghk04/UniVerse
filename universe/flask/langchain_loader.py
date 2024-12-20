@@ -7,11 +7,11 @@ import os
 from PyPDF2 import PdfReader
 from pptx import Presentation
 from docx import Document as WordDocument
-# Set nltk data path and download dependencies
+
 nltk.data.path.append('/home/amogh/nltk_data')
 nltk.download('punkt')
 
-CHROMA_PATH = "chroma"
+CHROMA_PATH = "universe/flask/chroma"
 DATA_PATH = "uploads"
 PROCESSED_FILES_TRACKER = "processed_files.txt"  # File to keep track of processed files
 
