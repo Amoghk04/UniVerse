@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import FormInput from '../../common/FormInput'; // Ensure this path is correct
 import axios from 'axios';
@@ -67,7 +67,7 @@ const AddHangouts = () => {
     setLoading(false);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async () => {
     if (placeExists) {
       // Submit review if place exists
       await axios.post(`${url}/add_review`, {
