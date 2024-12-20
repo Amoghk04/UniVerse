@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import FormInput from '../../common/FormInput'; // Ensure this path is correct
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const AddHangouts = () => {
   const [formData, setFormData] = useState({
@@ -10,10 +11,12 @@ const AddHangouts = () => {
     category: '',
     review: '',
     rating: '',
-    usn: ''
+    username: localStorage.getItem('currentUsername'),
   });
   const [placeExists, setPlaceExists] = useState(null); // true, false, or null
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
   const [imagePreview, setImagePreview] = useState(null);
 
   const url = "http://127.0.0.1:5000";
@@ -65,48 +68,30 @@ const AddHangouts = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    const formDataToSubmit = new FormData();
-    formDataToSubmit.append("placename", formData.placeName); // Change placeName to placename
-    formDataToSubmit.append("category", formData.category);
-    formDataToSubmit.append("review", formData.review);
-    formDataToSubmit.append("rating", formData.rating);
-    formDataToSubmit.append("usn", formData.usn);
-  
-    if (formData.image) {
-      formDataToSubmit.append("image", formData.image);
+    if (placeExists) {
+      // Submit review if place exists
+      await axios.post(`${url}/add_review`, {
+        placename: formData.placeName,
+        review: formData.review,
+        rating: formData.rating,
+        username: formData.username
+      });
+    } else {
+      // Submit new place if place doesn't exist
+      await axios.post(`${url}/add_place`, {
+        placename: formData.placeName,
+        image: formData.image,
+        category: formData.category
+      });
+      // Then submit review
+      await axios.post(`${url}/add_review`, {
+        placename: formData.placeName,
+        review: formData.review,
+        rating: formData.rating,
+        username: formData.username
+      });
     }
-  
-    try {
-      setLoading(true);
-      if (placeExists) {
-        // Submit review if place exists
-        await axios.post(`${url}/add_review`, {
-          placename: formData.placeName,
-          review: formData.review,
-          rating: formData.rating,
-          usn: formData.usn,
-        });
-      } else {
-        // Submit new place if place doesn't exist
-        await axios.post(`${url}/add_place`, formDataToSubmit, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
-        // Then submit review
-        await axios.post(`${url}/add_review`, {
-          placename: formData.placeName,
-          review: formData.review,
-          rating: formData.rating,
-          usn: formData.usn,
-        });
-      }
-      setLoading(false);
-    } catch (error) {
-      console.error("Error submitting data:", error);
-      setLoading(false);
-    }
+    navigate(`/socials/hangouts`);
   };
   
 
@@ -139,42 +124,32 @@ const AddHangouts = () => {
           {loading ? 'Checking...' : 'Check Place'}
         </button>
 
-        {/* Conditional Rendering */}
-        {placeExists === true && (
-          <div className="space-y-4 mt-6">
-            <FormInput
-              label="Review"
-              type="text"
-              name="review"
-              value={formData.review}
-              onChange={handleChange}
-              required
-              className="w-full p-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
-            />
-
-            <FormInput
-              label="Rating"
-              type="number"
-              name="rating"
-              value={formData.rating}
-              onChange={handleChange}
-              required
-              min={1}
-              max={5}
-              className="w-full p-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
-            />
-
-            <FormInput
-              label="USN"
-              type="text"
-              name="usn"
-              value={formData.usn}
-              onChange={handleChange}
-              required
-              className="w-full p-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-        )}
+      {/* Conditional Rendering */}
+      {placeExists === true && (
+        <div className="space-y-4 mt-6">
+          <FormInput
+            label="Review"
+            type="text"
+            name="review"
+            value={formData.review}
+            onChange={handleChange}
+            required
+            className="w-full p-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
+          />
+          
+          <FormInput
+            label="Rating"
+            type="number"
+            name="rating"
+            value={formData.rating}
+            onChange={handleChange}
+            required
+            min={1}
+            max={5}
+            className="w-full p-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+      )}
 
         {placeExists === false && (
           <div className="space-y-4 mt-6">

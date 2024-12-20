@@ -133,4 +133,7 @@ dist
 universe/flask/__pycache__
 universe/flask/processed_files.txt
 universe/flask/uploads*
+universe/flask/universe/flask/chroma
 universe/flask/chroma
+processed_files.txt
+uploads*

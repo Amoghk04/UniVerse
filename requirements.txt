@@ -1,5 +1,6 @@
 Flask==3.1.0
 Flask-Cors==5.0.0
+flask-socketio==0.14.0
 huggingface==0.0.1
 huggingface-hub==0.26.2
 langchain==0.3.8

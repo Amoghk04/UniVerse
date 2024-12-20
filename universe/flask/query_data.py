@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-CHROMA_PATH = "chroma"
+CHROMA_PATH = "universe/flask/chroma"
 
 PROMPT_TEMPLATE = """
 You are a helpful assistant. Answer the user's question using only the context provided below and the conversation history.
