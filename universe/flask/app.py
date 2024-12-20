@@ -8,10 +8,10 @@ from flask_socketio import SocketIO, join_room, leave_room, emit, rooms
 from bson import Binary
 import base64
 import requests
-# from datetime import datetime
-# from langchain_loader import generate_data_store
-# from query_data import get_answer, delete_memory
-# from werkzeug.utils import secure_filename
+from datetime import datetime
+from langchain_loader import generate_data_store
+from query_data import get_answer, delete_memory
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
@@ -552,45 +552,7 @@ def get_activities():
         return jsonify(result)
     except Exception as e:
         print(f"Error: {e}")
-        return jsonify({'error': 'Failed to fetch activities'}), 500
-    
-@app.route('/restaurants', methods=['GET'])
-def get_restaurants():
-    try:
-        
-        restaurants = places_collection.find({'category': 'food'}, {})
-        result = []
-        for restaurant in restaurants:
-            result.append({
-                '_id': str(restaurant['_id']),
-                'name': restaurant['name'],
-                'image': base64.b64encode(restaurant["image"]).decode('utf-8') if "image" in restaurant else None,
-                'avg_rating': restaurant['avg_rating'],
-                'category': restaurant['category']
-            })
-        return jsonify(result)
-    except Exception as e:
-        print(f"Error: {e}")
-        return jsonify({'error': 'Failed to fetch restaurants'}), 500    
-
-@app.route('/nature', methods=['GET'])
-def get_nature():
-    try:
-        
-        activities = places_collection.find({'category': 'nature'}, {})
-        result = []
-        for activity in activities:
-            result.append({
-                '_id': str(activity['_id']),
-                'name': activity['name'],
-                'image': base64.b64encode(activity["image"]).decode('utf-8') if "image" in activity else None,
-                'avg_rating': activity['avg_rating'],
-                'category': activity['category']
-            })
-        return jsonify(result)
-    except Exception as e:
-        print(f"Error: {e}")
-        return jsonify({'error': 'Failed to fetch activities'}), 500
+        return jsonify({'error': 'Failed to fetch activities'}), 500    
     
 @app.route('/food', methods=['GET'])
 def get_food():
