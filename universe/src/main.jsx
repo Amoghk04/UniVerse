@@ -10,7 +10,9 @@ import './index.css';
 import UnifiedAuthPage from './components/UnifiedAuthPage';
 import RAGInterface from './components/education/SmartNotes';
 import QuizRoom from './components/education/Quiz/quizHome';
-
+import Hangouts from './components/socials/Hangouts';
+import Events from './components/socials/Events';
+import AddHangouts from './components/socials/hangouts/AddHangouts';
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
@@ -23,6 +25,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <Route path="/college-life" element={<CollegeLifePage />} />
         <Route path="/education/notes" element={<RAGInterface/>} />
         <Route path="/education/quiz" element={<QuizRoom/>} />
+        <Route path="/socials/hangouts" element={<Hangouts/>}/>
+        <Route path="/socials/events" element={<Events/>}/>
+        <Route path="/socials/hangouts/add" element={<AddHangouts/>}/>
       </Routes>
     </BrowserRouter>
   </React.StrictMode>

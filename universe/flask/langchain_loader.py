@@ -5,7 +5,8 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
 import os
 from PyPDF2 import PdfReader
-
+from pptx import Presentation
+from docx import Document as WordDocument
 # Set nltk data path and download dependencies
 nltk.data.path.append('/home/amogh/nltk_data')
 nltk.download('punkt')
@@ -15,9 +16,9 @@ DATA_PATH = "uploads"
 PROCESSED_FILES_TRACKER = "processed_files.txt"  # File to keep track of processed files
 
 
-def generate_data_store():
+def generate_data_store(username):
     try:
-        documents = load_new_documents()
+        documents = load_new_documents(username)
         if documents:
             chunks = split_text(documents)
             save_to_chroma(chunks)
@@ -48,21 +49,38 @@ def update_processed_files(new_files):
         print(f"Error in update_processed_files: {e}")
 
 
-def load_new_documents():
+def load_new_documents(username):
     try:
         existing_files = load_existing_files()
-        all_files = {f for f in os.listdir(DATA_PATH) if f.endswith('.pdf')}
+        all_files = {f for f in os.listdir(DATA_PATH+f"_{username}") if f.endswith(('.pdf', '.ppt', '.pptx', '.docx'))}
         new_files = all_files - existing_files
 
         documents = []
-        for pdf_file in new_files:
-            pdf_path = os.path.join(DATA_PATH, pdf_file)
-            with open(pdf_path, 'rb') as f:
-                reader = PdfReader(f)
-                text = "".join([page.extract_text() for page in reader.pages])
+        for file_name in new_files:
+            file_path = os.path.join(DATA_PATH+f"_{username}", file_name)
+            text = ""
+
+            if file_name.endswith('.pdf'):
+                # Extract text from PDF
+                with open(file_path, 'rb') as f:
+                    reader = PdfReader(f)
+                    text = "".join([page.extract_text() for page in reader.pages])
+
+            elif file_name.endswith(('.ppt', '.pptx')):
+                # Extract text from PowerPoint
+                presentation = Presentation(file_path)
+                for slide in presentation.slides:
+                    for shape in slide.shapes:
+                        if shape.has_text_frame:
+                            text += "\n".join([p.text for p in shape.text_frame.paragraphs])
+
+            elif file_name.endswith('.docx'):
+                # Extract text from Word document
+                doc = WordDocument(file_path)
+                text = "\n".join([paragraph.text for paragraph in doc.paragraphs])
 
             if text.strip():  # Only add non-empty documents
-                documents.append(Document(page_content=text, metadata={"source": pdf_file}))
+                documents.append(Document(page_content=text, metadata={"source": file_name}))
 
         if documents:
             update_processed_files(new_files)
@@ -71,7 +89,6 @@ def load_new_documents():
     except Exception as e:
         print(f"Error in load_new_documents: {e}")
         return []
-
 
 def split_text(documents: list[Document]):
     try:

@@ -14,6 +14,7 @@ const QuizRoom = () => {
   const [currentRoom, setCurrentRoom] = useState(null);
   const [username, setUsername] = useState("");
   const [connected, setConnected] = useState(false);
+  const user = localStorage.getItem("currentUsername");
   const navigate = useNavigate();
 
   // Initialize socket connection
@@ -123,7 +124,7 @@ const QuizRoom = () => {
     });
   
     try {
-      const response = await fetch("http://127.0.0.1:5000/upload", {
+      const response = await fetch(`http://127.0.0.1:5000/${user}/upload`, {
         method: "POST",
         body: formData,
         headers: {
