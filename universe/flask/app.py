@@ -495,5 +495,24 @@ def upload_image():
     return jsonify({'message': 'File uploaded successfully', 'file_path': file_path}), 200
 
 
+@app.route('/activities', methods=['GET'])
+def get_activities():
+    try:
+        # Query to find all activities
+        activities = places_collection.find({'category': 'activities'}, {})
+        result = []
+        for activity in activities:
+            result.append({
+                '_id': str(activity['_id']),
+                'name': activity['name'],
+                'image': activity['image'],
+                'avg_rating': activity['avg_rating'],
+                'category': activity['category']
+            })
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({'error': 'Failed to fetch activities'}), 500
+
 if __name__=="__main__":
     socketio.run(app, debug=True, host="0.0.0.0", port=5000)
