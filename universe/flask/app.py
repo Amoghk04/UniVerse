@@ -8,10 +8,10 @@ from flask_socketio import SocketIO, join_room, leave_room, emit, rooms
 from bson import Binary
 import base64
 
-# from datetime import datetime
-# from langchain_loader import generate_data_store
-# from query_data import get_answer
-# from werkzeug.utils import secure_filename
+from datetime import datetime
+from langchain_loader import generate_data_store
+from query_data import get_answer
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
@@ -493,7 +493,7 @@ def upload_image():
 @app.route('/top-rated-places', methods=['GET'])
 def get_top_rated_places():
     try:
-        print('in')
+        
         # Fetch top 5 places sorted by avg_rating in descending order
         top_places = places_collection.find().sort("avg_rating", -1).limit(5)
         if top_places:
@@ -512,13 +512,10 @@ def get_top_rated_places():
             for place in top_places
         ]
 
-
         return jsonify({
             "success": True,
             "data": result
         }), 200
-    
-
 
     except Exception as e:
         return jsonify({
@@ -537,7 +534,7 @@ def get_activities():
             result.append({
                 '_id': str(activity['_id']),
                 'name': activity['name'],
-                'image': activity['image'],
+                'image': base64.b64encode(activity["image"]).decode('utf-8') if "image" in activity else None,
                 'avg_rating': activity['avg_rating'],
                 'category': activity['category']
             })
@@ -545,6 +542,27 @@ def get_activities():
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({'error': 'Failed to fetch activities'}), 500
+
+
+@app.route('/reviews/<place_name>', methods=['GET'])
+def get_reviews(place_name):
+    try:
+        # Query to find reviews for the specific place
+        reviews = reviews_collection.find({'place_name': place_name})
+        result = []
+        for review in reviews:
+            result.append({
+                '_id': str(review['_id']),
+                'place_name': review['place_name'],
+                'review': review['review'],
+                'rating': review['rating'],
+                'username': review.get('username', 'Anonymous')
+            })
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({'error': 'Failed to fetch reviews'}), 500
+
 
 if __name__=="__main__":
     socketio.run(app, debug=True, host="0.0.0.0", port=5000)
