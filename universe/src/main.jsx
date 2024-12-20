@@ -14,8 +14,8 @@ import Hangouts from './components/socials/Hangouts';
 import Events from './components/socials/Events';
 import AddHangouts from './components/socials/hangouts/AddHangouts';
 import Notes from './components/education/Assignments.jsx';
-
 import Activities from './components/socials/hangouts/Activities';
+import QuizGame from './components/education/Quiz/quizGame.jsx';
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
@@ -33,6 +33,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <Route path="/socials/hangouts/add" element={<AddHangouts/>}/>
         <Route path="/education/notes" element={<Notes />} />
         <Route path="/socials/hangouts/activities" element={<Activities/>}/>
+        <Route path="/education/quizGame" element={<QuizGame/>} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>
