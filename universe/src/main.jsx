@@ -13,6 +13,8 @@ import QuizRoom from './components/education/Quiz/quizHome';
 import Hangouts from './components/socials/Hangouts';
 import Events from './components/socials/Events';
 import AddHangouts from './components/socials/hangouts/AddHangouts';
+
+import Activities from './components/socials/hangouts/Activities';
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
@@ -28,6 +30,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <Route path="/socials/hangouts" element={<Hangouts/>}/>
         <Route path="/socials/events" element={<Events/>}/>
         <Route path="/socials/hangouts/add" element={<AddHangouts/>}/>
+        <Route path="/socials/hangouts/activities" element={<Activities/>}/>
       </Routes>
     </BrowserRouter>
   </React.StrictMode>

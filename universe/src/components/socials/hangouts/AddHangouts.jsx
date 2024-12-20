@@ -110,6 +110,7 @@ const AddHangouts = () => {
       console.error("Error submitting data:", error);
       setLoading(false);
     }
+    navigate('/socials/hangouts')
   };
   
 

@@ -525,5 +525,59 @@ def get_top_rated_places():
 
 
 
+@app.route('/top-rated-places', methods=['GET'])
+def get_top_rated_places():
+    try:
+        
+        # Fetch top 5 places sorted by avg_rating in descending order
+        top_places = places_collection.find().sort("avg_rating", -1).limit(5)
+        if top_places:
+            print('yes')
+        else:
+            print('no')
+
+        # Convert the cursor to a list of dictionaries
+        result = [
+            {
+                "name": place.get("name"),
+                "image": base64.b64encode(place["image"]).decode('utf-8') if "image" in place else None,
+                "avg_rating": place.get("avg_rating"),
+                "category": place.get("category")
+            }
+            for place in top_places
+        ]
+
+        return jsonify({
+            "success": True,
+            "data": result
+        }), 200
+
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+
+
+@app.route('/activities', methods=['GET'])
+def get_activities():
+    try:
+        # Query to find all activities
+        activities = places_collection.find({'category': 'activities'}, {})
+        result = []
+        for activity in activities:
+            result.append({
+                '_id': str(activity['_id']),
+                'name': activity['name'],
+                'image': activity['image'],
+                'avg_rating': activity['avg_rating'],
+                'category': activity['category']
+            })
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({'error': 'Failed to fetch activities'}), 500
+
 if __name__=="__main__":
     socketio.run(app, debug=True, host="0.0.0.0", port=5000)
