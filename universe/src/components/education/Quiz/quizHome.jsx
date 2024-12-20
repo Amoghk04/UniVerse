@@ -81,7 +81,7 @@ const QuizRoom = () => {
     // Add game start event listener
     socket.on("game_started", () => {
       console.log("Game started - redirecting to home page");
-      navigate('/home');
+      navigate('/education/quizGame');
     });
 
     socket.on("error", (error) => {
@@ -171,34 +171,61 @@ const QuizRoom = () => {
       alert("Not connected to server. Please try again.");
       return;
     }
-
+  
     if (quizTitle.trim() === "") {
       alert("Please enter a quiz title.");
       return;
     }
+    
     if (files.length === 0) {
       alert("Please upload at least one document.");
       return;
     }
-
+  
     const userInput = prompt("Enter your name (as room creator):");
     if (!userInput) {
       alert("Name is required to create a room.");
       return;
     }
-
+  
     setUsername(userInput);
     const newRoomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
     
+    // Emit event to backend for room creation
     socket.emit("create_room", {
       roomCode: newRoomCode,
       quizTitle,
       creator: userInput,
       files: files.map(f => f.name)
     });
-
-    setRoomCode(newRoomCode);
+  
+    // Set room code in local state
+    localStorage.setItem('roomCode', roomCode);
+  
+    // Listen for room creation success response
+    socket.on('room_created', (data) => {
+      const { roomCode, creator, quizTitle, users } = data;
+  
+      // Update state with the room info (room code, creator, quiz title, etc.)
+      console.log("Room created successfully:", data);
+      // Handle your room state updates and redirection here
+      // For example:
+      setRoomDetails({
+        roomCode,
+        creator,
+        quizTitle,
+        users
+      });
+      alert(`Room ${roomCode} created successfully!`);
+    });
+  
+    // Listen for error responses from the backend
+    socket.on('error', (errorData) => {
+      alert(errorData.message || "An error occurred while creating the room.");
+    });
+  
   }, [socket, connected, quizTitle, files]);
+  
 
   const handleLeaveRoom = useCallback(() => {
     if (socket && currentRoom) {
@@ -206,6 +233,7 @@ const QuizRoom = () => {
       setCurrentRoom(null);
       setRoomUsers([]);
       setUsername("");
+      localStorage.removeItem('roomCode');
     }
   }, [socket, currentRoom, username]);
 
