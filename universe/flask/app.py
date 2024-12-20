@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify,render_template
+from flask import Flask, request, jsonify, render_template, make_response
 from pymongo import MongoClient
 from dotenv import load_dotenv
 import os
@@ -59,6 +59,7 @@ users_collection = db["users"]
 quiz_rooms_collection = db["quiz_rooms"]
 places_collection = db["places"]
 reviews_collection = db["reviews"]
+notes_collection = db["notes"]
 
 @app.route("/register", methods=["POST"])
 def register():
@@ -443,9 +444,7 @@ def enter_place_name():
         return jsonify({"exists": True}), 200  
     else:
         return jsonify({"exists": False}), 200  
-
-
-
+    
 
 @app.route("/add_review", methods=["POST"])
 def add_review_route():
@@ -563,6 +562,78 @@ def get_reviews(place_name):
         print(f"Error: {e}")
         return jsonify({'error': 'Failed to fetch reviews'}), 500
 
+@app.route('/notes/upload', methods=["POST", "GET"])
+def upload_or_list_notes():
+    try:
+        if request.method == "POST":
+            # Handling file upload
+            file = request.files['file']
+            semester = request.form['semester']
+            branch = request.form['branch']
+            subject = request.form['subject']
 
+            if not all([file, semester, branch, subject]):
+                return jsonify({"message": "All fields (file, semester, branch, subject) are required"}), 400
+
+            # Save file and metadata to MongoDB
+            notes_collection.insert_one({
+                "semester": semester,
+                "branch": branch,
+                "subject": subject,
+                "filename": file.filename,
+                "file_data": file.read()  # Store binary file data
+            })
+
+            return jsonify({"message": "File uploaded successfully"}), 200
+
+        elif request.method == "GET":
+            # Fetch all files with hierarchy
+            all_notes = notes_collection.find()
+            hierarchy = {}
+
+            for note in all_notes:
+                semester = note['semester']
+                branch = note['branch']
+                subject = note['subject']
+                filename = note['filename']
+
+                if semester not in hierarchy:
+                    hierarchy[semester] = {}
+                if branch not in hierarchy[semester]:
+                    hierarchy[semester][branch] = {}
+                if subject not in hierarchy[semester][branch]:
+                    hierarchy[semester][branch][subject] = []
+
+                hierarchy[semester][branch][subject].append(filename)
+
+            return jsonify(hierarchy), 200
+
+    except Exception as e:
+        return jsonify({"Error": str(e)}), 500
+
+@app.route('/notes/download/<filename>', methods=['GET'])
+def download_file(filename):
+    try:
+        # Find the document with the matching filename
+        file_doc = notes_collection.find_one({"filename": filename})
+        
+        if not file_doc:
+            return jsonify({"message": "File not found"}), 404
+
+        # Get the file data from the document
+        file_data = file_doc['file_data']
+        
+        # Create a response with the file data
+        response = make_response(file_data)
+        
+        # Set appropriate headers
+        response.headers['Content-Type'] = 'application/octet-stream'
+        response.headers['Content-Disposition'] = f'attachment; filename={filename}'
+        
+        return response
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
 if __name__=="__main__":
     socketio.run(app, debug=True, host="0.0.0.0", port=5000)
