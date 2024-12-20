@@ -67,31 +67,49 @@ const AddHangouts = () => {
     setLoading(false);
   };
 
-  const handleSubmit = async () => {
-    if (placeExists) {
-      // Submit review if place exists
-      await axios.post(`${url}/add_review`, {
-        placename: formData.placeName,
-        review: formData.review,
-        rating: formData.rating,
-        username: formData.username
-      });
-    } else {
-      // Submit new place if place doesn't exist
-      await axios.post(`${url}/add_place`, {
-        placename: formData.placeName,
-        image: formData.image,
-        category: formData.category
-      });
-      // Then submit review
-      await axios.post(`${url}/add_review`, {
-        placename: formData.placeName,
-        review: formData.review,
-        rating: formData.rating,
-        username: formData.username
-      });
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const formDataToSubmit = new FormData();
+    formDataToSubmit.append("placename", formData.placeName); // Change placeName to placename
+    formDataToSubmit.append("category", formData.category);
+    formDataToSubmit.append("review", formData.review);
+    formDataToSubmit.append("rating", formData.rating);
+    
+  
+    if (formData.image) {
+      formDataToSubmit.append("image", formData.image);
     }
-    navigate(`/socials/hangouts`);
+  
+    try {
+      setLoading(true);
+      if (placeExists) {
+        // Submit review if place exists
+        await axios.post(`${url}/add_review`, {
+          placename: formData.placeName,
+          review: formData.review,
+          rating: formData.rating,
+          username: formData.username,
+        });
+      } else {
+        // Submit new place if place doesn't exist
+        await axios.post(`${url}/add_place`, formDataToSubmit, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        // Then submit review
+        await axios.post(`${url}/add_review`, {
+          placename: formData.placeName,
+          review: formData.review,
+          rating: formData.rating,
+          usn: formData.usn,
+        });
+      }
+      setLoading(false);
+    } catch (error) {
+      console.error("Error submitting data:", error);
+      setLoading(false);
+    }
   };
   
 
@@ -210,17 +228,7 @@ const AddHangouts = () => {
               />
             </div>
 
-            <div className="space-y-1">
-              <label htmlFor="usn" className="block text-sm font-medium text-white">USN</label>
-              <input
-                type="text"
-                name="usn"
-                value={formData.usn}
-                onChange={handleChange}
-                required
-                className="w-full p-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+            
           </div>
         )}
 
