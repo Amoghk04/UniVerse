@@ -23,8 +23,8 @@ const Hangouts = () => {
   ];
 
   const handleCardClick = (category) => {
-    setSelectedCategory(category);
-  };
+    navigate(`/socials/hangouts/${category}`);
+  }; 
 
   // Function to handle going back
   const handleBack = () => {
