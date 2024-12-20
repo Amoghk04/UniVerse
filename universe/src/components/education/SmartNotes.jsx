@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import universeLogo from "/src/assets/UniVerse.png"; // Replace with your logo
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { SunIcon, MoonIcon } from 'lucide-react';
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { SunIcon, MoonIcon } from "lucide-react";
 import { Loader2 } from "lucide-react";
 
 const RAGInterface = () => {
@@ -11,35 +11,50 @@ const RAGInterface = () => {
   const [query, setQuery] = useState("");
   const [darkMode, setDarkMode] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [uploadStatus, setUploadStatus] = useState({ show: false, message: '', isError: false });
+  const [uploadStatus, setUploadStatus] = useState({
+    show: false,
+    message: "",
+    isError: false,
+  });
   const [isDeleting, setIsDeleting] = useState(false);
-  const [deleteStatus, setDeleteStatus] = useState({ show: false, message: '', isError: false });
+  const [deleteStatus, setDeleteStatus] = useState({
+    show: false,
+    message: "",
+    isError: false,
+  });
+  const [isTyping, setIsTyping] = useState(false); // Typing animation state
   const navigate = useNavigate();
   const user = localStorage.getItem("currentUsername");
 
   // Theme management with local storage
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme');
+    const savedTheme = localStorage.getItem("theme");
     if (savedTheme) {
-      setDarkMode(savedTheme === 'dark');
-      document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+      setDarkMode(savedTheme === "dark");
+      document.documentElement.classList.toggle("dark", savedTheme === "dark");
     }
   }, []);
 
   const toggleDarkMode = () => {
     const newMode = !darkMode;
     setDarkMode(newMode);
-    localStorage.setItem('theme', newMode ? 'dark' : 'light');
-    document.documentElement.classList.toggle('dark', newMode);
+    localStorage.setItem("theme", newMode ? "dark" : "light");
+    document.documentElement.classList.toggle("dark", newMode);
   };
 
   const handleFileUpload = (e) => {
     const uploadedFiles = Array.from(e.target.files).filter((file) =>
-        ["application/pdf", "application/vnd.ms-powerpoint", "application/vnd.openxmlformats-officedocument.presentationml.presentation", "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"].includes(file.type)
+      [
+        "application/pdf",
+        "application/vnd.ms-powerpoint",
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      ].includes(file.type)
     );
 
     if (files.length !== e.target.files.length) {
-        alert("Only PDF, PPT, and DOC files are allowed.");
+      alert("Only PDF, PPT, and DOC files are allowed.");
     }
 
     setFiles((prevFiles) => [...prevFiles, ...uploadedFiles]);
@@ -50,15 +65,15 @@ const RAGInterface = () => {
       alert("No files to upload.");
       return;
     }
-    
+
     setIsUploading(true);
-    setUploadStatus({ show: false, message: '', isError: false });
-    
+    setUploadStatus({ show: false, message: "", isError: false });
+
     const formData = new FormData();
     files.forEach((file, index) => {
       formData.append(`file_${index}`, file);
     });
-  
+
     try {
       const response = await fetch(`http://127.0.0.1:5000/${user}/upload`, {
         method: "POST",
@@ -67,25 +82,25 @@ const RAGInterface = () => {
           "Access-Control-Allow-Origin": "*",
         },
       });
-  
+
       if (!response.ok) {
         throw new Error("Failed to upload files.");
       }
-  
+
       const data = await response.json();
       console.log("Server Response:", data);
-      setUploadStatus({ 
-        show: true, 
-        message: "Files uploaded successfully!", 
-        isError: false 
+      setUploadStatus({
+        show: true,
+        message: "Files uploaded successfully!",
+        isError: false,
       });
       setFiles([]);
     } catch (error) {
       console.error("Error uploading files:", error);
-      setUploadStatus({ 
-        show: true, 
-        message: "Failed to upload files. Please try again.", 
-        isError: true 
+      setUploadStatus({
+        show: true,
+        message: "Failed to upload files. Please try again.",
+        isError: true,
       });
     } finally {
       setIsUploading(false);
@@ -93,42 +108,48 @@ const RAGInterface = () => {
   };
 
   const handleDeleteMemory = async () => {
-    if (!window.confirm('Are you sure you want to delete all memory? This action cannot be undone.')) {
+    if (
+      !window.confirm(
+        "Are you sure you want to delete all memory? This action cannot be undone."
+      )
+    ) {
       return;
     }
-  
+
     setIsDeleting(true);
-    setDeleteStatus({ show: false, message: '', isError: false });
-  
+    setDeleteStatus({ show: false, message: "", isError: false });
+
     try {
-      const response = await fetch(`http://127.0.0.1:5000/${user}/delete_memory`, {
-        method: 'DELETE',
-        headers: {
-          'Access-Control-Allow-Origin': '*'
+      const response = await fetch(
+        `http://127.0.0.1:5000/${user}/delete_memory`,
+        {
+          method: "DELETE",
+          headers: {
+            "Access-Control-Allow-Origin": "*",
+          },
         }
-      });
-  
+      );
+
       if (!response.ok) {
-        throw new Error('Failed to delete memory');
+        throw new Error("Failed to delete memory");
       }
-  
+
       setDeleteStatus({
         show: true,
-        message: 'Memory deleted successfully!',
-        isError: false
+        message: "Memory deleted successfully!",
+        isError: false,
       });
-      
+
       // Clear the chat history as well
       setChat([]);
       // Clear the files list
       setFiles([]);
-      
     } catch (error) {
-      console.error('Error deleting memory:', error);
+      console.error("Error deleting memory:", error);
       setDeleteStatus({
         show: true,
-        message: 'Failed to delete memory. Please try again.',
-        isError: true
+        message: "Failed to delete memory. Please try again.",
+        isError: true,
       });
     } finally {
       setIsDeleting(false);
@@ -139,6 +160,7 @@ const RAGInterface = () => {
     if (query.trim() === "") return;
 
     setChat((prev) => [...prev, { type: "question", content: query }]);
+    setIsTyping(true); // Start typing animation
 
     try {
       const response = await fetch(`http://127.0.0.1:5000/${user}/query`, {
@@ -158,7 +180,12 @@ const RAGInterface = () => {
       setChat((prev) => [...prev, { type: "answer", content: data.answer }]);
     } catch (error) {
       console.error("Error fetching query response:", error);
-      setChat((prev) => [...prev, { type: "answer", content: "Error fetching response from server." }]);
+      setChat((prev) => [
+        ...prev,
+        { type: "answer", content: "Error fetching response from server." },
+      ]);
+    } finally {
+      setIsTyping(false); // Stop typing animation
     }
 
     setQuery("");
@@ -263,17 +290,37 @@ const RAGInterface = () => {
 
         {/* Chat Section */}
         <section className="col-span-9 bg-white dark:bg-gray-800 rounded-lg shadow p-6 flex flex-col">
-          <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">Chat</h3>
+          <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">
+            Chat
+          </h3>
           <div className="flex-grow overflow-y-auto space-y-4 p-4 bg-gray-50 dark:bg-gray-700 rounded">
             {chat.map((message, index) => (
-              <div key={index} className={`flex ${message.type === "question" ? "justify-end" : "justify-start"}`}>
+              <div
+                key={index}
+                className={`flex ${
+                  message.type === "question"
+                    ? "justify-end"
+                    : "justify-start"
+                }`}
+              >
                 <div
-                  className={`max-w-md p-3 rounded-lg ${message.type === "question" ? "bg-blue-600 text-white" : "bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200"}`}
+                  className={`max-w-md p-3 rounded-lg ${
+                    message.type === "question"
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200"
+                  }`}
                 >
                   {message.content}
                 </div>
               </div>
             ))}
+            {isTyping && (
+              <div className="flex justify-start">
+                <div className="max-w-md p-3 rounded-lg bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200">
+                  Typing<span className="animate-pulse">...</span>
+                </div>
+              </div>
+            )}
           </div>
         </section>
       </main>
