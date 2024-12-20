@@ -96,206 +96,206 @@ def login():
     
     return jsonify({"message":"Login Successful"}), 200
 
-# @app.route("/forgot_password", methods=["POST"])
-# def forgot_password():
-#     data = request.json
-#     username = data.get("username")
-#     email = data.get("email")
-#     new_password = data.get("password")
-#     confirm_password = data.get("confirmPassword")
+@app.route("/forgot_password", methods=["POST"])
+def forgot_password():
+    data = request.json
+    username = data.get("username")
+    email = data.get("email")
+    new_password = data.get("password")
+    confirm_password = data.get("confirmPassword")
 
-#     print(username, email, new_password, confirm_password)
+    print(username, email, new_password, confirm_password)
 
-#     if not username or not email or not new_password or not confirm_password:
-#         return jsonify({"error": "All fields are required"}), 401
+    if not username or not email or not new_password or not confirm_password:
+        return jsonify({"error": "All fields are required"}), 401
 
-#     if new_password != confirm_password:
-#         return jsonify({"error": "Passwords do not match"}), 402
+    if new_password != confirm_password:
+        return jsonify({"error": "Passwords do not match"}), 402
 
-#     user = users_collection.find_one({"username": username, "email": email})
-#     if not user:
-#         return jsonify({"error": "Invalid username or email"}), 404
+    user = users_collection.find_one({"username": username, "email": email})
+    if not user:
+        return jsonify({"error": "Invalid username or email"}), 404
 
-#     hashed_password = generate_password_hash(new_password)
-#     users_collection.update_one({"_id": user["_id"]}, {"$set": {"password": hashed_password}})
+    hashed_password = generate_password_hash(new_password)
+    users_collection.update_one({"_id": user["_id"]}, {"$set": {"password": hashed_password}})
 
-#     return jsonify({"message": "Password updated successfully"}), 200
+    return jsonify({"message": "Password updated successfully"}), 200
 
-# @app.route("/user/<username>", methods=["GET"])
-# def get_user_details(username):
-#     user = users_collection.find_one({"username":username}, {"_id":0, "password": 0})
+@app.route("/user/<username>", methods=["GET"])
+def get_user_details(username):
+    user = users_collection.find_one({"username":username}, {"_id":0, "password": 0})
 
-#     if not user:
-#         return jsonify({"error": "User not found"}), 400
+    if not user:
+        return jsonify({"error": "User not found"}), 400
     
-#     return jsonify({"user": user}), 200
+    return jsonify({"user": user}), 200
 
-# @app.route("/<username>/upload", methods=["POST"])
-# def upload_files(username):
-#     if not request.files:
-#         return jsonify({"error": "No files uploaded"}), 400
+@app.route("/<username>/upload", methods=["POST"])
+def upload_files(username):
+    if not request.files:
+        return jsonify({"error": "No files uploaded"}), 400
     
-#     try:
-#         # Create uploads directory if it doesn't exist
-#         os.makedirs(f"./uploads_{username}", exist_ok=True)
+    try:
+        # Create uploads directory if it doesn't exist
+        os.makedirs(f"./uploads_{username}", exist_ok=True)
         
-#         files = request.files
-#         for key in files:
-#             file = files[key]
-#             if file.filename:  # Check if a file was actually selected
-#                 # Secure the filename to prevent directory traversal attacks
-#                 from werkzeug.utils import secure_filename
-#                 filename = secure_filename(file.filename)
-#                 file.save(os.path.join(f"uploads_{username}", filename))
+        files = request.files
+        for key in files:
+            file = files[key]
+            if file.filename:  # Check if a file was actually selected
+                # Secure the filename to prevent directory traversal attacks
+                from werkzeug.utils import secure_filename
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(f"uploads_{username}", filename))
         
-#         generate_data_store(username)
-#         print("Generated chunks")
+        generate_data_store(username)
+        print("Generated chunks")
 
-#         return jsonify({"message": "Files uploaded successfully"}), 200
-#     except Exception as e:
-#         return jsonify({"error": str(e)}), 500
+        return jsonify({"message": "Files uploaded successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
     
 
-# @app.route("/<username>/query", methods=["POST"])
-# def query_data(username):
-#     try:
-#         data = request.json
-#         query = data.get("query")
-#         result = get_answer(username, query, MONGO_URI)
+@app.route("/<username>/query", methods=["POST"])
+def query_data(username):
+    try:
+        data = request.json
+        query = data.get("query")
+        result = get_answer(username, query, MONGO_URI)
 
-#         return jsonify({"answer":result})
-#     except Exception as e:
-#         print(e)
-#         return jsonify({"Error": str(e)}), 500
+        return jsonify({"answer":result})
+    except Exception as e:
+        print(e)
+        return jsonify({"Error": str(e)}), 500
 
-# # Socket event handlers
-# @socketio.on('connect')
-# def handle_connect():
-#     print(f"Client connected: {request.sid}")
-#     socket_connections[request.sid] = {
-#         'username': None,
-#         'room': None
-#     }
-#     emit('connection_success', {'message': 'Connected successfully'})
+# Socket event handlers
+@socketio.on('connect')
+def handle_connect():
+    print(f"Client connected: {request.sid}")
+    socket_connections[request.sid] = {
+        'username': None,
+        'room': None
+    }
+    emit('connection_success', {'message': 'Connected successfully'})
 
-# @socketio.on('disconnect')
-# def handle_disconnect():
-#     print(f"Client disconnected: {request.sid}")
-#     # Clean up user from room if they were in one
-#     connection_data = socket_connections.get(request.sid)
-#     if connection_data and connection_data['room']:
-#         handle_leave({
-#             'username': connection_data['username'],
-#             'roomCode': connection_data['room']
-#         })
-#     socket_connections.pop(request.sid, None)
+@socketio.on('disconnect')
+def handle_disconnect():
+    print(f"Client disconnected: {request.sid}")
+    # Clean up user from room if they were in one
+    connection_data = socket_connections.get(request.sid)
+    if connection_data and connection_data['room']:
+        handle_leave({
+            'username': connection_data['username'],
+            'roomCode': connection_data['room']
+        })
+    socket_connections.pop(request.sid, None)
 
-# @socketio.on('create_room')
-# def handle_create_room(data):
-#     room_code = data['roomCode']
-#     quiz_title = data['quizTitle']
-#     creator = data['creator']
-#     files = data.get('files', [])
+@socketio.on('create_room')
+def handle_create_room(data):
+    room_code = data['roomCode']
+    quiz_title = data['quizTitle']
+    creator = data['creator']
+    files = data.get('files', [])
 
-#     if room_code in rooms:
-#         emit('error', {'message': 'Room already exists'})
-#         return
+    if room_code in rooms:
+        emit('error', {'message': 'Room already exists'})
+        return
 
-#     # Create room with enhanced structure
-#     rooms[room_code] = {
-#         'host': creator,
-#         'users': [creator],
-#         'quiz_title': quiz_title,
-#         'created_at': datetime.now(),
-#         'files': files,
-#         'status': 'waiting'
-#     }
+    # Create room with enhanced structure
+    rooms[room_code] = {
+        'host': creator,
+        'users': [creator],
+        'quiz_title': quiz_title,
+        'created_at': datetime.now(),
+        'files': files,
+        'status': 'waiting'
+    }
 
-#     # Store room in database
-#     quiz_rooms_collection.insert_one({
-#         'room_code': room_code,
-#         'quiz_title': quiz_title,
-#         'host': creator,
-#         'created_at': datetime.now(),
-#         'files': files
-#     })
+    # Store room in database
+    quiz_rooms_collection.insert_one({
+        'room_code': room_code,
+        'quiz_title': quiz_title,
+        'host': creator,
+        'created_at': datetime.now(),
+        'files': files
+    })
 
-#     # Add user to room
-#     join_room(room_code)
-#     socket_connections[request.sid] = {
-#         'username': creator,
-#         'room': room_code
-#     }
+    # Add user to room
+    join_room(room_code)
+    socket_connections[request.sid] = {
+        'username': creator,
+        'room': room_code
+    }
 
-#     emit('room_created', {
-#         'roomCode': room_code,
-#         'creator': creator,
-#         'quizTitle': quiz_title,
-#         'users': [creator]
-#     })
+    emit('room_created', {
+        'roomCode': room_code,
+        'creator': creator,
+        'quizTitle': quiz_title,
+        'users': [creator]
+    })
 
-# @socketio.on('join_room')
-# def handle_join_room(data):
-#     username = data['username']
-#     room_code = data['roomCode']
+@socketio.on('join_room')
+def handle_join_room(data):
+    username = data['username']
+    room_code = data['roomCode']
 
-#     if room_code not in rooms:
-#         emit('error', {'message': 'Room not found'})
-#         return
+    if room_code not in rooms:
+        emit('error', {'message': 'Room not found'})
+        return
 
-#     # Add user to room
-#     if username not in rooms[room_code]['users']:
-#         rooms[room_code]['users'].append(username)
+    # Add user to room
+    if username not in rooms[room_code]['users']:
+        rooms[room_code]['users'].append(username)
     
-#     # Update socket connection tracking
-#     socket_connections[request.sid] = {
-#         'username': username,
-#         'room': room_code
-#     }
+    # Update socket connection tracking
+    socket_connections[request.sid] = {
+        'username': username,
+        'room': room_code
+    }
 
-#     join_room(room_code)
+    join_room(room_code)
     
-#     # Notify everyone in the room
-#     emit('user_joined', {
-#         'username': username,
-#         'users': rooms[room_code]['users']
-#     }, room=room_code)
+    # Notify everyone in the room
+    emit('user_joined', {
+        'username': username,
+        'users': rooms[room_code]['users']
+    }, room=room_code)
 
-#     # Send room data to the joining user
-#     emit('room_joined', {
-#         'roomCode': room_code,
-#         'quizTitle': rooms[room_code]['quiz_title'],
-#         'users': rooms[room_code]['users'],
-#         'host': rooms[room_code]['host']
-#     })
+    # Send room data to the joining user
+    emit('room_joined', {
+        'roomCode': room_code,
+        'quizTitle': rooms[room_code]['quiz_title'],
+        'users': rooms[room_code]['users'],
+        'host': rooms[room_code]['host']
+    })
 
-# @socketio.on('leave_room')
-# def handle_leave(data):
-#     username = data['username']
-#     room_code = data['roomCode']
+@socketio.on('leave_room')
+def handle_leave(data):
+    username = data['username']
+    room_code = data['roomCode']
 
-#     if room_code in rooms and username in rooms[room_code]['users']:
-#         rooms[room_code]['users'].remove(username)
-#         leave_room(room_code)
+    if room_code in rooms and username in rooms[room_code]['users']:
+        rooms[room_code]['users'].remove(username)
+        leave_room(room_code)
         
-#         # Update socket connection tracking
-#         if request.sid in socket_connections:
-#             socket_connections[request.sid]['room'] = None
-#             socket_connections[request.sid]['username'] = None
+        # Update socket connection tracking
+        if request.sid in socket_connections:
+            socket_connections[request.sid]['room'] = None
+            socket_connections[request.sid]['username'] = None
 
-#         # Notify others in the room
-#         emit('user_left', {
-#             'username': username,
-#             'users': rooms[room_code]['users']
-#         }, room=room_code)
+        # Notify others in the room
+        emit('user_left', {
+            'username': username,
+            'users': rooms[room_code]['users']
+        }, room=room_code)
 
-#         # Clean up empty rooms
-#         if len(rooms[room_code]['users']) == 0:
-#             rooms.pop(room_code)
-#             quiz_rooms_collection.update_one(
-#                 {'room_code': room_code},
-#                 {'$set': {'status': 'completed', 'completed_at': datetime.now()}}
-#             )
+        # Clean up empty rooms
+        if len(rooms[room_code]['users']) == 0:
+            rooms.pop(room_code)
+            quiz_rooms_collection.update_one(
+                {'room_code': room_code},
+                {'$set': {'status': 'completed', 'completed_at': datetime.now()}}
+            )
 
 @socketio.on('start_game')
 def handle_start_game(data):
@@ -304,41 +304,41 @@ def handle_start_game(data):
     socketio.emit('game_started', room=room_code)
 
 
-# @socketio.on('rejoin_room')
-# def handle_rejoin_room(data):
-#     username = data['username']
-#     room_code = data['roomCode']
+@socketio.on('rejoin_room')
+def handle_rejoin_room(data):
+    username = data['username']
+    room_code = data['roomCode']
 
-#     if room_code not in rooms:
-#         emit('error', {'message': 'Room no longer exists'})
-#         return
+    if room_code not in rooms:
+        emit('error', {'message': 'Room no longer exists'})
+        return
 
-#     # Re-add user to room if they're not already in it
-#     if username not in rooms[room_code]['users']:
-#         rooms[room_code]['users'].append(username)
+    # Re-add user to room if they're not already in it
+    if username not in rooms[room_code]['users']:
+        rooms[room_code]['users'].append(username)
     
-#     # Update socket connection tracking
-#     socket_connections[request.sid] = {
-#         'username': username,
-#         'room': room_code
-#     }
+    # Update socket connection tracking
+    socket_connections[request.sid] = {
+        'username': username,
+        'room': room_code
+    }
 
-#     join_room(room_code)
+    join_room(room_code)
     
-#     emit('room_joined', {
-#         'roomCode': room_code,
-#         'quizTitle': rooms[room_code]['quiz_title'],
-#         'users': rooms[room_code]['users'],
-#         'host': rooms[room_code]['host']
-#     })
+    emit('room_joined', {
+        'roomCode': room_code,
+        'quizTitle': rooms[room_code]['quiz_title'],
+        'users': rooms[room_code]['users'],
+        'host': rooms[room_code]['host']
+    })
 
-# @socketio.on('ping_room')
-# def handle_ping(data):
-#     room_code = data['roomCode']
-#     if room_code in rooms:
-#         emit('room_active', {'roomCode': room_code})
+@socketio.on('ping_room')
+def handle_ping(data):
+    room_code = data['roomCode']
+    if room_code in rooms:
+        emit('room_active', {'roomCode': room_code})
 
-# REST endpoints remain mostly the same, but add new endpoints for room management
+
 
 @app.route('/rooms/<room_code>', methods=['GET'])
 def get_room_info(room_code):
@@ -493,7 +493,7 @@ def upload_image():
 @app.route('/top-rated-places', methods=['GET'])
 def get_top_rated_places():
     try:
-        
+        print('in')
         # Fetch top 5 places sorted by avg_rating in descending order
         top_places = places_collection.find().sort("avg_rating", -1).limit(5)
         if top_places:
@@ -512,52 +512,19 @@ def get_top_rated_places():
             for place in top_places
         ]
 
+
         return jsonify({
             "success": True,
             "data": result
         }), 200
+    
+
 
     except Exception as e:
         return jsonify({
             "success": False,
             "error": str(e)
         }), 500
-
-
-
-@app.route('/top-rated-places', methods=['GET'])
-def get_top_rated_places():
-    try:
-        
-        # Fetch top 5 places sorted by avg_rating in descending order
-        top_places = places_collection.find().sort("avg_rating", -1).limit(5)
-        if top_places:
-            print('yes')
-        else:
-            print('no')
-
-        # Convert the cursor to a list of dictionaries
-        result = [
-            {
-                "name": place.get("name"),
-                "image": base64.b64encode(place["image"]).decode('utf-8') if "image" in place else None,
-                "avg_rating": place.get("avg_rating"),
-                "category": place.get("category")
-            }
-            for place in top_places
-        ]
-
-        return jsonify({
-            "success": True,
-            "data": result
-        }), 200
-
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        }), 500
-
 
 
 @app.route('/activities', methods=['GET'])

@@ -14,12 +14,12 @@ const Hangouts = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
-
+  const url = "http://127.0.0.1:5000";
   // Fetch top-rated places from the backend
   useEffect(() => {
     const fetchTopRatedPlaces = async () => {
       try {
-        const response = await axios.get('/top-rated-places');
+        const response = await axios.get(`${url}/top-rated-places`);
         if (response.data.success) {
           console.log("success");
           setTopRatedPlaces(response.data.data);
@@ -54,6 +54,12 @@ const Hangouts = () => {
     }
   }, [search]);
 
+  const handleCardClick = (category) => {
+    navigate(`/socials/hangouts/${category}`);
+  };
+  const handleBack = () => {
+    setSelectedCategory(null); // Reset category selection
+  };
   // Handle dark mode toggle
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -149,7 +155,7 @@ const Hangouts = () => {
               className={`bg-gradient-to-br ${
                 category === 'foodies' ? 'from-orange-500 to-yellow-600' : category === 'nature' ? 'from-green-500 to-teal-600' : 'from-purple-500 to-indigo-600'
               } text-white rounded-xl p-6 shadow-lg transform transition-all duration-200 hover:shadow-xl cursor-pointer mb-6`}
-              onClick={() => setSelectedCategory(category)}
+              onClick={() => handleCardClick(category)}
             >
               <div className="flex justify-center items-center mb-4">
                 {category === 'foodies' && <CoffeeIcon className="text-white text-4xl" />}
@@ -188,6 +194,7 @@ const Hangouts = () => {
                 </div>
               </motion.div>
             ))}
+            
           </Slider>
 
           {/* Search Input */}
@@ -203,7 +210,7 @@ const Hangouts = () => {
           </div>
 
           {/* Filtered Places */}
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6">
             {places.map((place) => (
               <motion.div
                 key={place.name}
@@ -216,9 +223,22 @@ const Hangouts = () => {
                   <span>{place.avg_rating}</span>
                 </div>
               </motion.div>
+              
             ))}
+            {/* Add Review Button */}
+         <motion.button
+          onClick={() => navigate('/socials/hangouts/add')}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="mt-8 px-8 py-3 bg-blue-500 text-white text-lg rounded-full hover:bg-blue-600 transition"
+          >
+            <SparklesIcon className="inline-block mr-3 text-yellow-300" size={20} />
+            Add Your Review
+
+          </motion.button>
           </div>
         </div>
+         
       </main>
     </div>
   );
