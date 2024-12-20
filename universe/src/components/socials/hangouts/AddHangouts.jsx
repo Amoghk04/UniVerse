@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import FormInput from '../../common/FormInput'; // Ensure this path is correct
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const AddHangouts = () => {
   const [formData, setFormData] = useState({
@@ -10,10 +11,12 @@ const AddHangouts = () => {
     category: '',
     review: '',
     rating: '',
-    usn: ''
+    username: localStorage.getItem('currentUsername'),
   });
   const [placeExists, setPlaceExists] = useState(null); // true, false, or null
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
 const url= "http://127.0.0.1:5000";
   const staggeredChildren = {
     hidden: { opacity: 0 },
@@ -50,14 +53,13 @@ const url= "http://127.0.0.1:5000";
   
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
     if (placeExists) {
       // Submit review if place exists
       await axios.post(`${url}/add_review`, {
         placename: formData.placeName,
         review: formData.review,
         rating: formData.rating,
-        usn: formData.usn
+        username: formData.username
       });
     } else {
       // Submit new place if place doesn't exist
@@ -71,9 +73,10 @@ const url= "http://127.0.0.1:5000";
         placename: formData.placeName,
         review: formData.review,
         rating: formData.rating,
-        usn: formData.usn
+        username: formData.username
       });
     }
+    navigate(`/socials/hangouts`);
   };
 
   return (
@@ -129,16 +132,6 @@ const url= "http://127.0.0.1:5000";
             max={5}
             className="w-full p-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
           />
-
-          <FormInput
-            label="USN"
-            type="text"
-            name="usn"
-            value={formData.usn}
-            onChange={handleChange}
-            required
-            className="w-full p-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
-          />
         </div>
       )}
 
@@ -191,23 +184,15 @@ const url= "http://127.0.0.1:5000";
             max={5}
             className="w-full p-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
           />
-
-          <FormInput
-            label="USN"
-            type="text"
-            name="usn"
-            value={formData.usn}
-            onChange={handleChange}
-            required
-            className="w-full p-3 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500"
-          />
         </div>
       )}
 
       {placeExists !== null && (
         <button
           type="button"
-          onClick={handleSubmit}
+          onClick={() => {
+            handleSubmit();
+          }}
           className="w-full py-3 mt-6 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200"
         >
           {placeExists ? 'Add Review' : 'Add Place and Review'}

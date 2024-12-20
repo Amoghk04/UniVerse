@@ -376,7 +376,7 @@ def add_place(name, image, category):
         print(f"Place '{name}' already exists.")
 
 
-def add_review(place_name, review, rating, usn):
+def add_review(place_name, review, rating, username):
     place_lower = place_name.lower()
     place = places_collection.find_one({"$expr": {"$eq": [{"$toLower": "$name"}, place_lower]}})
     place_name=place["name"]
@@ -384,9 +384,9 @@ def add_review(place_name, review, rating, usn):
         "place_name": place_name,
         "review": review,
         "rating": rating,
-        "usn": usn
+        "username": username 
     })
-    print(f"Review added for '{place_name}' by user '{usn}'.")
+    print(f"Review added for '{place_name}' by user '{username}'.")
 
     avg_rating = reviews_collection.aggregate([
         {"$match": {"place_name": place_name}},
@@ -446,9 +446,9 @@ def add_review_route():
     placename = data.get("placename").lower()  # Convert to lowercase for comparison
     review = data.get("review")
     rating = data.get("rating")
-    usn = data.get("usn")
+    username = data.get("username")
 
-    if not placename or not review or not rating or not usn:
+    if not placename or not review or not rating:
         return jsonify({"error": "Missing required fields"}), 400
 
     # Case-insensitive search for place name
@@ -459,7 +459,7 @@ def add_review_route():
         return jsonify({"error": f"Place '{placename}' not found"}), 404
 
     # Add the review and update avg_rating
-    add_review(placename, review, int(rating), usn)
+    add_review(placename, review, int(rating), username)
 
     return jsonify({"message": f"Review for '{placename}' added successfully"}), 200
 
