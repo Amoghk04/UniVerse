@@ -127,7 +127,17 @@ const [darkMode, setDarkMode] = useState(false);
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white text-black rounded-lg p-6 w-3/4 max-w-lg">
-            <h2 className="text-2xl font-bold mb-4">Reviews for {selectedPlace}</h2>
+          {/* Google Maps Directions Link */}
+          <h2 className="text-2xl font-bold mb-4"> {selectedPlace}</h2>
+        <a
+          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedPlace)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-500 underline mb-4 block"
+        >
+          Get Directions to {selectedPlace}
+        </a>
+            <h2 className="text-2xl font-bold mb-4">Reviews</h2>
             <button
               onClick={closeModal}
               className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded"

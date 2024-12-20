@@ -7,6 +7,7 @@ from flask_cors import CORS
 from flask_socketio import SocketIO, join_room, leave_room, emit, rooms
 from bson import Binary
 import base64
+import requests
 # from datetime import datetime
 # from langchain_loader import generate_data_store
 # from query_data import get_answer, delete_memory
@@ -684,6 +685,32 @@ def download_file(filename):
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+
+GOOGLE_API_KEY = 'AIzaSyAKviKaoNilF2G3P5jdQuA4aecoe5g3WYg'
+MSRIT_COORDS = {'lat': 13.03297, 'lng': 77.56496}  # MSRIT, Bengaluru
+
+@app.route('/nearby-places', methods=['GET'])
+def get_nearby_places():
+    
+    try:
+        url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={MSRIT_COORDS['lat']},{MSRIT_COORDS['lng']}&radius=5000&type=restaurant&key={GOOGLE_API_KEY}"
+        response = requests.get(url)
+        print(response.json())
+        # Check if the response is successful
+        response.raise_for_status() 
+        # Raises an exception for 4xx/5xx HTTP status codes
+        return jsonify(response.json())  # Return the data to the frontend
+
+    except requests.exceptions.HTTPError as http_err:
+        print(f"HTTP error occurred: {http_err}")  # Print HTTP error details
+        return jsonify({'error': 'HTTP error occurred', 'details': str(http_err)}), 500
+    except requests.exceptions.RequestException as req_err:
+        print(f"Request error occurred: {req_err}")  # Print request error details
+        return jsonify({'error': 'Request error occurred', 'details': str(req_err)}), 500
+    except Exception as err:
+        print(f"Other error occurred: {err}")  # Print any other errors
+        return jsonify({'error': 'An error occurred', 'details': str(err)}), 500
     
 if __name__=="__main__":
     socketio.run(app, debug=True, host="0.0.0.0", port=5000)
