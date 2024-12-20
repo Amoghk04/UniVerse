@@ -14,7 +14,6 @@ const QuizRoom = () => {
   const [currentRoom, setCurrentRoom] = useState(null);
   const [username, setUsername] = useState("");
   const [connected, setConnected] = useState(false);
-  const user = localStorage.getItem("currentUsername");
   const navigate = useNavigate();
 
   // Initialize socket connection
@@ -124,7 +123,7 @@ const QuizRoom = () => {
     });
   
     try {
-      const response = await fetch(`http://127.0.0.1:5000/${user}/upload`, {
+      const response = await fetch("http://127.0.0.1:5000/upload", {
         method: "POST",
         body: formData,
         headers: {
@@ -326,7 +325,7 @@ const QuizRoom = () => {
             
             <div>
               <h3 className="text-lg font-semibold mb-2">Participants ({roomUsers.length})</h3>
-              <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 max-h-48 overflow-y-auto">
+              <div className={`rounded-lg p-4 max-h-48 overflow-y-auto ${darkMode ? "bg-gray-700 text-white" : "bg-gray-100 text-black"}`}>
                 {roomUsers.map((user, index) => (
                   <div
                     key={index}
