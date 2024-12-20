@@ -18,6 +18,8 @@ import Events from './components/socials/Events';
 import AddHangouts from './components/socials/hangouts/AddHangouts';
 import Notes from './components/education/Assignments';
 import Activities from './components/socials/hangouts/Activities';
+import Restaurants from './components/socials/hangouts/Restaurants.jsx';
+import Nature from './components/socials/hangouts/Nature.jsx';
 import QuizGame from './components/education/Quiz/quizGame.jsx';
 
 // Import styles
@@ -46,6 +48,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <Route path="/socials/events" element={<Events />} />
         <Route path="/socials/hangouts/add" element={<AddHangouts />} />
         <Route path="/socials/hangouts/activities" element={<Activities />} />
+        <Route path="/socials/hangouts/foodies" element={<Restaurants />} />
+        <Route path="/socials/hangouts/nature" element={<Nature />} />
 
         {/* College Life Routes */}
         <Route path="/college-life" element={<CollegeLifePage />} />

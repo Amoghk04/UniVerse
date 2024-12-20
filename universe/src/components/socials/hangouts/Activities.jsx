@@ -61,8 +61,9 @@ const Activities = () => {
             />
             <div className="p-4">
               <h2 className="text-xl font-bold">{activity.name}</h2>
-              <p className="text-sm text-gray-400">
-                Average Rating: {activity.avg_rating}
+              <p className="text-sm text-gray-400 flex items-center">
+                ⭐
+                Rating: {activity.avg_rating}
               </p>
             </div>
           </div>
@@ -72,7 +73,7 @@ const Activities = () => {
       {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white text-black rounded-lg p-6 w-3/4 max-w-lg">
+          <div className="bg-white text-black rounded-lg p-6 w-3/4 max-w-lg relative">
             <h2 className="text-2xl font-bold mb-4">Reviews for {selectedPlace}</h2>
             <button
               onClick={closeModal}
@@ -80,21 +81,33 @@ const Activities = () => {
             >
               Close
             </button>
+
+            <div className="mb-6">
+              {/* Full Image in Review Modal */}
+              <img
+                src={`data:image/jpeg;base64,${activities.find(r => r.name === selectedPlace)?.image}`}
+                alt={selectedPlace}
+                className="w-full object-contain rounded-lg"  // ensures full image visibility
+              />
+            </div>
+
             {reviews.length > 0 ? (
-              <ul className="space-y-4">
-                {reviews.map((review) => (
-                  <li
-                    key={review._id}
-                    className="border-b pb-2 last:border-b-0"
-                  >
-                    <p className="font-semibold">Rating: {review.rating}/5</p>
-                    <p className="italic">{review.review}</p>
-                    <p className="text-gray-500 text-sm">
-                      By: {review.username || 'Anonymous'}
-                    </p>
-                  </li>
-                ))}
-              </ul>
+              <div className="max-h-60 overflow-y-auto">
+                <ul className="space-y-4">
+                  {reviews.map((review) => (
+                    <li
+                      key={review._id}
+                      className="border-b pb-2 last:border-b-0"
+                    >
+                      <p className="font-semibold">Rating: {review.rating}/5</p>
+                      <p className="italic">{review.review}</p>
+                      <p className="text-gray-500 text-sm">
+                        By: {review.username || 'Anonymous'}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ) : (
               <p>No reviews available for this place.</p>
             )}

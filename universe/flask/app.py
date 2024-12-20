@@ -552,7 +552,45 @@ def get_activities():
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({'error': 'Failed to fetch activities'}), 500
+    
+@app.route('/restaurants', methods=['GET'])
+def get_restaurants():
+    try:
+        
+        restaurants = places_collection.find({'category': 'food'}, {})
+        result = []
+        for restaurant in restaurants:
+            result.append({
+                '_id': str(restaurant['_id']),
+                'name': restaurant['name'],
+                'image': base64.b64encode(restaurant["image"]).decode('utf-8') if "image" in restaurant else None,
+                'avg_rating': restaurant['avg_rating'],
+                'category': restaurant['category']
+            })
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({'error': 'Failed to fetch restaurants'}), 500    
 
+
+@app.route('/nature', methods=['GET'])
+def get_nature():
+    try:
+        
+        natures = places_collection.find({'category': 'nature'}, {})
+        result = []
+        for nature in natures:
+            result.append({
+                '_id': str(nature['_id']),
+                'name': nature['name'],
+                'image': base64.b64encode(nature["image"]).decode('utf-8') if "image" in nature else None,
+                'avg_rating': nature['avg_rating'],
+                'category': nature['category']
+            })
+        return jsonify(result)
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({'error': 'Failed to fetch nature'}), 500  
 
 @app.route('/reviews/<place_name>', methods=['GET'])
 def get_reviews(place_name):
