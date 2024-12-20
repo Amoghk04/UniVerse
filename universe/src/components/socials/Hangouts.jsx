@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
-import { SparklesIcon, SunIcon, MoonIcon, UserIcon, SearchIcon, MapPinIcon, CoffeeIcon, LeafIcon, ActivityIcon, StarIcon } from 'lucide-react';
+import { SparklesIcon, SunIcon, MoonIcon, UserIcon, SearchIcon, CoffeeIcon, LeafIcon, ActivityIcon, StarIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
@@ -9,29 +9,52 @@ import Slider from 'react-slick';
 
 const Hangouts = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
-
-  // Sample data for each category
-  const places = [
-    { id: 1, name: 'Restaurant A', image: 'https://via.placeholder.com/150', rating: 4.5, category:'food' },
-    { id: 2, name: 'Restaurant B', image: 'https://via.placeholder.com/150', rating: 4.0, category:'food' },
-    
-    { id: 3, name: 'Park A', image: 'https://via.placeholder.com/150', rating: 4.8, category:'nature' },
-    { id: 4, name: 'Lake B', image: 'https://via.placeholder.com/150', rating: 4.6, category:'nature' },
-    
-    { id: 5, name: 'Hiking Trail', image: 'https://via.placeholder.com/150', rating: 4.7, category:'activities' },
-    { id: 6, name: 'Water Park', image: 'https://via.placeholder.com/150', rating: 4.3, category:'activities' },
-  ];
-
-  const handleCardClick = (category) => {
-    setSelectedCategory(category);
-  };
-
-  // Function to handle going back
-  const handleBack = () => {
-    setSelectedCategory(null); // Reset category selection
-  };
-
+  const [places, setPlaces] = useState([]);
+  const [topRatedPlaces, setTopRatedPlaces] = useState([]);
   const [darkMode, setDarkMode] = useState(false);
+  const [search, setSearch] = useState('');
+  const navigate = useNavigate();
+
+  // Fetch top-rated places from the backend
+  useEffect(() => {
+    const fetchTopRatedPlaces = async () => {
+      try {
+        const response = await axios.get('/top-rated-places');
+        if (response.data.success) {
+          console.log("success");
+          setTopRatedPlaces(response.data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching top-rated places:', error);
+      }
+    };
+
+    fetchTopRatedPlaces();
+  }, []);
+
+  // Fetch places based on search input
+  useEffect(() => {
+    const fetchPlaces = async () => {
+      try {
+        const response = await axios.get('/search', {
+          params: { query: search },
+        });
+        if (response.data.success) {
+          setPlaces(response.data.data);
+        }
+      } catch (error) {
+        console.error('Error fetching places:', error);
+      }
+    };
+
+    if (search) {
+      fetchPlaces();
+    } else {
+      setPlaces([]); // Reset places when search is cleared
+    }
+  }, [search]);
+
+  // Handle dark mode toggle
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme) {
@@ -40,6 +63,14 @@ const Hangouts = () => {
     }
   }, []);
 
+  const toggleDarkMode = () => {
+    const newMode = !darkMode;
+    setDarkMode(newMode);
+    localStorage.setItem('theme', newMode ? 'dark' : 'light');
+    document.documentElement.classList.toggle('dark', newMode);
+  };
+
+  // Slider settings
   const settings = {
     dots: false,
     infinite: true,
@@ -61,31 +92,6 @@ const Hangouts = () => {
       },
     ],
   };
-
-  const navigate = useNavigate();
-
-  const toggleDarkMode = () => {
-    const newMode = !darkMode;
-    setDarkMode(newMode);
-    localStorage.setItem('theme', newMode ? 'dark' : 'light');
-    document.documentElement.classList.toggle('dark', newMode);
-  };
-
-  const [search, setSearch] = useState('');
-  const handleSearch = (event) => {
-    setSearch(event.target.value);
-  };
-
-  // Filter the places based on search term
-  const filteredPlaces = search
-  ? places.filter((place) =>
-      place.name.toLowerCase().includes(search.toLowerCase())
-    )
-  : []; 
-
-  const topRatedPlaces = places
-    .sort((a, b) => b.rating - a.rating) // Sort in descending order by rating
-    .slice(0, 5); 
 
   return (
     <div
@@ -143,7 +149,7 @@ const Hangouts = () => {
               className={`bg-gradient-to-br ${
                 category === 'foodies' ? 'from-orange-500 to-yellow-600' : category === 'nature' ? 'from-green-500 to-teal-600' : 'from-purple-500 to-indigo-600'
               } text-white rounded-xl p-6 shadow-lg transform transition-all duration-200 hover:shadow-xl cursor-pointer mb-6`}
-              onClick={() => handleCardClick(category)}
+              onClick={() => setSelectedCategory(category)}
             >
               <div className="flex justify-center items-center mb-4">
                 {category === 'foodies' && <CoffeeIcon className="text-white text-4xl" />}
@@ -171,14 +177,14 @@ const Hangouts = () => {
           <Slider {...settings}>
             {topRatedPlaces.map((place) => (
               <motion.div
-                key={place.id}
+                key={place.name}
                 className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg"
               >
-                <img src={place.image} alt={place.name} className="w-full h-32 object-cover rounded-lg mb-4" />
+                <img src={`data:image/jpeg;base64,${place.image}`} alt={place.name} className="w-full h-32 object-cover rounded-lg mb-4" />
                 <h4 className="text-lg font-semibold">{place.name}</h4>
                 <div className="flex items-center space-x-2 mt-2">
                   <StarIcon className="text-yellow-500" size={16} />
-                  <span>{place.rating}</span>
+                  <span>{place.avg_rating}</span>
                 </div>
               </motion.div>
             ))}
@@ -189,7 +195,7 @@ const Hangouts = () => {
             <input
               type="text"
               value={search}
-              onChange={handleSearch}
+              onChange={(e) => setSearch(e.target.value)}
               placeholder="Search for a place..."
               className="w-full p-3 pl-10 rounded-lg shadow-md border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -198,33 +204,20 @@ const Hangouts = () => {
 
           {/* Filtered Places */}
           <div className="grid grid-cols-3 gap-6">
-            {
-              filteredPlaces.map((place) => (
-                <motion.div
-                  key={place.id}
-                  className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg"
-                >
-                  <img src={place.image} alt={place.name} className="w-full h-32 object-cover rounded-lg mb-4" />
-                  <h4 className="text-lg font-semibold">{place.name}</h4>
-                  <div className="flex items-center space-x-2 mt-2">
-                    <StarIcon className="text-yellow-500" size={16} />
-                    <span>{place.rating}</span>
-                  </div>
-                </motion.div>
-              ))}
+            {places.map((place) => (
+              <motion.div
+                key={place.name}
+                className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg"
+              >
+                <img src={`data:image/jpeg;base64,${place.image}`} alt={place.name} className="w-full h-32 object-cover rounded-lg mb-4" />
+                <h4 className="text-lg font-semibold">{place.name}</h4>
+                <div className="flex items-center space-x-2 mt-2">
+                  <StarIcon className="text-yellow-500" size={16} />
+                  <span>{place.avg_rating}</span>
+                </div>
+              </motion.div>
+            ))}
           </div>
-
-          {/* Add Review Button */}
-          <motion.button
-          onClick={() => navigate('/socials/hangouts/add')}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="mt-8 px-8 py-3 bg-blue-500 text-white text-lg rounded-full hover:bg-blue-600 transition"
-          >
-            <SparklesIcon className="inline-block mr-3 text-yellow-300" size={20} />
-            Add Your Review
-
-          </motion.button>
         </div>
       </main>
     </div>

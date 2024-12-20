@@ -5,6 +5,9 @@ import os
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_cors import CORS
 from flask_socketio import SocketIO, join_room, leave_room, emit, rooms
+from bson import Binary
+import base64
+
 # from datetime import datetime
 # from langchain_loader import generate_data_store
 # from query_data import get_answer
@@ -366,20 +369,32 @@ def get_active_rooms():
     return jsonify(active_rooms)
 
 
-def add_place(name, image_path, category):
-    name_lower = name.lower()  # Convert to lowercase for comparison
-    place = places_collection.find_one({"$expr": {"$eq": [{"$toLower": "$name"}, name_lower]}})
+@app.route('/add_place', methods=['POST'])
+def add_place():
+    try:
+        # Get data from the request
+        name = request.form.get("placename")
+        category = request.form.get("category")
+        image = request.files["image"].read()  # Read the image file as binary data
 
-    if not place:
-        places_collection.insert_one({
-            "name": name,
-            "image": image_path,  # Store the image path
-            "avg_rating": 0,
-            "category": category
-        })
-        print(f"Place '{name}' added.")
-    else:
-        print(f"Place '{name}' already exists.")
+        # Convert name to lowercase for case-insensitive comparison
+        name_lower = name.lower()
+        place = places_collection.find_one({"$expr": {"$eq": [{"$toLower": "$name"}, name_lower]}})
+
+        if not place:
+            # Insert new place into the collection
+            places_collection.insert_one({
+                "name": name,
+                "image": Binary(image),  # Store image as binary
+                "avg_rating": 0,
+                "category": category
+            })
+            return jsonify({"success": True, "message": f"Place '{name}' added."}), 201
+        else:
+            return jsonify({"success": False, "message": f"Place '{name}' already exists."}), 409
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
         
 
 
@@ -431,26 +446,6 @@ def enter_place_name():
 
 
 
-@app.route("/add_place", methods=["POST"])
-def add_place_route():
-    placename = request.form.get("placename")
-    category = request.form.get("category")
-    image = request.files.get("image")
-    
-    if not placename or not image or not category:
-        return jsonify({"error": "Missing required fields"}), 400
-
-    # Debug log
-    print(f"Received data: placename={placename}, category={category}, image={image.filename}")
-    
-    # Save image
-    image_filename = image.filename
-    image_path = os.path.join(app.config['UPLOAD_FOLDER'], image_filename)
-    image.save(image_path)
-
-    add_place(placename, image_path, category)
-    return jsonify({"message": f"Place '{placename}' added successfully", "image_path": image_path}), 200
-
 
 @app.route("/add_review", methods=["POST"])
 def add_review_route():
@@ -493,6 +488,41 @@ def upload_image():
 
     # Optionally, you can store the file path in a database
     return jsonify({'message': 'File uploaded successfully', 'file_path': file_path}), 200
+
+
+@app.route('/top-rated-places', methods=['GET'])
+def get_top_rated_places():
+    try:
+        
+        # Fetch top 5 places sorted by avg_rating in descending order
+        top_places = places_collection.find().sort("avg_rating", -1).limit(5)
+        if top_places:
+            print('yes')
+        else:
+            print('no')
+
+        # Convert the cursor to a list of dictionaries
+        result = [
+            {
+                "name": place.get("name"),
+                "image": base64.b64encode(place["image"]).decode('utf-8') if "image" in place else None,
+                "avg_rating": place.get("avg_rating"),
+                "category": place.get("category")
+            }
+            for place in top_places
+        ]
+
+        return jsonify({
+            "success": True,
+            "data": result
+        }), 200
+
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
 
 
 if __name__=="__main__":
