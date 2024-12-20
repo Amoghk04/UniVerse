@@ -21,6 +21,7 @@ import Activities from './components/socials/hangouts/Activities';
 import QuizGame from './components/education/Quiz/quizHome.jsx';
 import Restaurants from './components/socials/hangouts/Restaurants.jsx';
 import Nature from './components/socials/hangouts/Nature.jsx';
+import GamingComms from './components/GamingComms.jsx';
 // Import styles
 import './index.css';
 
@@ -53,6 +54,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         {/* College Life Routes */}
         <Route path="/college-life" element={<CollegeLifePage />} />
         <Route path="/club-interaction-spaces" element={<ClubInteractionSpaces />} />
+        <Route path="/gaming-communities" element={<GamingComms />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>
