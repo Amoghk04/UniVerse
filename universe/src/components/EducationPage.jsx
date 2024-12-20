@@ -9,17 +9,17 @@ const EducationPage = () => {
 
   const widgets = [
     {
-      id: 'notes',
+      id: 'smart-notes',
       title: 'Smart Notes Repository',
       icon: BookOpenIcon,
       description: 'Access and organize your notes efficiently.',
       color: 'bg-gradient-to-br from-blue-500 to-indigo-600',
     },
     {
-      id: 'search',
-      title: 'AI Academic Search',
+      id: 'notes',
+      title: 'Assignments and Notes',
       icon: SearchIcon,
-      description: 'Discover academic resources with AI assistance.',
+      description: 'Add the notes and assignments for you courses',
       color: 'bg-gradient-to-br from-green-500 to-teal-600',
     },
     {
