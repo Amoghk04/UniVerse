@@ -21,7 +21,6 @@ import Notes from './components/education/Assignments';
 import Activities from './components/socials/hangouts/Activities';
 import Restaurants from './components/socials/hangouts/Restaurants.jsx';
 import Nature from './components/socials/hangouts/Nature.jsx';
-import GamingComms from './components/GamingComms.jsx';
 import AlumniLinkedInPage from './components/AlumniInfoGather.jsx';
 import GamingComms from './components/college/GamingComms.jsx';
 // Import styles
