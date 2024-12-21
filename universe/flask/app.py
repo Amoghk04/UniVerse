@@ -10,9 +10,9 @@ import base64
 import requests
 from datetime import datetime, timedelta
 import re
-from langchain_loader import generate_data_store
-from query_data import get_answer, delete_memory
-from werkzeug.utils import secure_filename
+# from langchain_loader import generate_data_store
+# from query_data import get_answer, delete_memory
+# from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
@@ -974,6 +974,39 @@ def get_alumni():
     except Exception as e:
         print(f"Error in get_alumni: {str(e)}")  # Log the error
         return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
+    
+@app.route('/fetchallplaces', methods=['GET'])
+def fetch_places():
+    try:
+        # Query MongoDB to fetch all places (no filter)
+        places = list(places_collection.find())
+
+        if places:
+            # Prepare the response data
+            response = []
+            for place in places:
+                # Convert the image to Base64 (only if it exists)
+                if 'image' in place:
+                    encoded_image = base64.b64encode(place["image"]).decode('utf-8')
+                else:
+                    encoded_image = None
+
+                response.append({
+                    "name": place["name"],
+                    "image": encoded_image,  # Include Base64-encoded image
+                    "avg_rating": place["avg_rating"],
+                    "category": place["category"]
+                })
+
+            return jsonify({"success": True, "data": response})
+        else:
+            return jsonify({"success": False, "message": "No places found"}), 404
+
+    except Exception as e:
+        # Log the error for debugging
+        print(f"Error fetching places: {e}")
+        return jsonify({"success": False, "message": f"Internal server error: {str(e)}"}), 500
+
 
     
 if __name__=="__main__":
