@@ -555,7 +555,7 @@ def get_top_rated_places():
     try:
         
         # Fetch top 5 places sorted by avg_rating in descending order
-        top_places = places_collection.find().sort("avg_rating", -1).limit(5)
+        top_places = places_collection.find().sort("avg_rating", -1).limit(9)
         if top_places:
             print('yes')
         else:

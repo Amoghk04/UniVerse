@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { motion } from 'framer-motion';
-import { SparklesIcon, UserIcon, SearchIcon, CoffeeIcon, LeafIcon, ActivityIcon, StarIcon } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { SparklesIcon, UserIcon, SearchIcon, CoffeeIcon, LeafIcon, ActivityIcon, StarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
-import Slider from 'react-slick';
 
 const Hangouts = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -18,7 +17,44 @@ const Hangouts = () => {
   const navigate = useNavigate();
   const url = "http://127.0.0.1:5000";
 
-  // Fetch top-rated places from the backend
+  // Carousel state
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [displayCount, setDisplayCount] = useState(3);
+
+  // Update display count based on window width
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 640) {
+        setDisplayCount(1);
+      } else if (window.innerWidth < 1024) {
+        setDisplayCount(2);
+      } else {
+        setDisplayCount(3);
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Carousel navigation functions
+  const nextSlide = () => {
+    setCurrentIndex((prevIndex) => 
+      prevIndex + displayCount >= topRatedPlaces.length ? 0 : prevIndex + displayCount
+    );
+  };
+
+  const prevSlide = () => {
+    setCurrentIndex((prevIndex) => 
+      prevIndex - displayCount < 0 ? Math.max(0, topRatedPlaces.length - displayCount) : prevIndex - displayCount
+    );
+  };
+
+  // Get visible places for carousel
+  const visiblePlaces = topRatedPlaces.slice(currentIndex, currentIndex + displayCount);
+
+  // Rest of your existing effects...
   useEffect(() => {
     const fetchTopRatedPlaces = async () => {
       try {
@@ -34,7 +70,6 @@ const Hangouts = () => {
     fetchTopRatedPlaces();
   }, []);
 
-  // Fetch places based on search input
   useEffect(() => {
     const fetchPlaces = async () => {
       try {
@@ -52,7 +87,7 @@ const Hangouts = () => {
     if (search) {
       fetchPlaces();
     } else {
-      setPlaces([]); // Reset places when search is cleared
+      setPlaces([]);
     }
   }, [search]);
 
@@ -60,11 +95,6 @@ const Hangouts = () => {
     navigate(`/socials/hangouts/${category}`);
   };
 
-  const handleBack = () => {
-    setSelectedCategory(null); // Reset category selection
-  };
-
-  // Handle dark mode toggle
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme) {
@@ -73,40 +103,8 @@ const Hangouts = () => {
     }
   }, []);
 
-  const toggleDarkMode = () => {
-    const newMode = !darkMode;
-    setDarkMode(newMode);
-    localStorage.setItem('theme', newMode ? 'dark' : 'light');
-    document.documentElement.classList.toggle('dark', newMode);
-  };
-
-  // Slider settings
-  const settings = {
-    dots: false,
-    infinite: true,
-    speed: 500,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    responsive: [
-      {
-        breakpoint: 1024,
-        settings: {
-          slidesToShow: 2,
-        },
-      },
-      {
-        breakpoint: 600,
-        settings: {
-          slidesToShow: 1,
-        },
-      },
-    ],
-  };
-
   return (
-    <div
-      className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900 text-white' : 'bg-white text-gray-900'} overflow-x-hidden`}
-    >
+    <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900 text-white' : 'bg-white text-gray-900'} overflow-x-hidden`}>
       <header className="bg-white dark:bg-gray-800 shadow-md py-4 flex items-center justify-between px-4 w-full">
         <button
           onClick={() => window.history.back()}
@@ -128,176 +126,211 @@ const Hangouts = () => {
           </motion.button>
         </div>
       </header>
-
+  
       <main className="container mx-auto px-4 py-12 flex flex-col gap-6">
-      <div className="w-full">
-  <motion.h2
-    initial={{ opacity: 0, y: -20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.5 }}
-    className="text-4xl font-extrabold text-center mb-12 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600"
-  >
-    Top Rated Hangouts
-  </motion.h2>
-
-  {/* Slider Component */}
-  <Slider {...settings}>
-    {topRatedPlaces.map((place) => (
-      <motion.div
-        key={place.name}
-        className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg flex flex-col justify-between items-center max-w-3xl mx-auto"  // Aligning the flex column and centering content
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        {/* Image */}
-        <img
-          src={`data:image/jpeg;base64,${place.image}`}
-          alt={place.name}
-          className="w-full h-64 object-cover rounded-lg mb-4"  // Ensure image size consistency
-        />
-
-        {/* Name of the place */}
-        <h4 className="text-xl font-semibold text-center text-white dark:text-gray-100 mb-2">{place.name}</h4>
-
-        {/* Rating Section */}
-        <div className="flex items-center space-x-2 mt-2 justify-center">
-          <StarIcon className="text-yellow-500" size={20} />
-          <span className="text-white dark:text-gray-100">{place.avg_rating}</span>
+        {/* Top Rated Section with Carousel */}
+        <div className="w-full">
+          <motion.h2
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-4xl font-extrabold text-center mb-12 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600"
+          >
+            Top Rated Hangouts
+          </motion.h2>
+  
+          <div className="relative w-full px-4 py-8">
+            <div className="flex justify-between items-center mb-6">
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={prevSlide}
+                className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </motion.button>
+              
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={nextSlide}
+                className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </motion.button>
+            </div>
+  
+            <div className="relative overflow-hidden">
+              <motion.div 
+                className="flex gap-4"
+                initial={false}
+              >
+                <AnimatePresence mode="wait">
+                  {visiblePlaces.map((place, index) => (
+                    <motion.div
+                      key={`${place.name}-${index}`}
+                      className={`flex-1 min-w-0 ${displayCount === 1 ? 'w-full' : displayCount === 2 ? 'w-1/2' : 'w-1/3'}`}
+                      initial={{ opacity: 0, x: 50 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -50 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden h-full">
+                        <div className="relative h-48 sm:h-64 md:h-72 lg:h-80">
+                          <img
+                            src={`data:image/jpeg;base64,${place.image}`}
+                            alt={place.name}
+                            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                          />
+                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                            <h3 className="text-white text-xl font-bold truncate">
+                              {place.name}
+                            </h3>
+                            <div className="flex items-center space-x-2 mt-2">
+                              <StarIcon className="text-yellow-400 w-5 h-5" />
+                              <span className="text-white">{place.avg_rating}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </motion.div>
+            </div>
+  
+            <div className="flex justify-center mt-4 gap-2">
+              {Array.from({ length: Math.ceil(places.length / displayCount) }).map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentIndex(idx * displayCount)}
+                  className={`w-2 h-2 rounded-full transition-colors ${
+                    Math.floor(currentIndex / displayCount) === idx 
+                      ? 'bg-blue-500' 
+                      : 'bg-gray-300 dark:bg-gray-600'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
         </div>
-      </motion.div>
-    ))}
-  </Slider>
-</div>
-
-
-  {/* Middle Section: Category Cards */}
-<div className="w-full">
-  <motion.h2
-    initial={{ opacity: 0, y: -20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.5 }}
-    className="text-4xl font-extrabold text-center mb-12 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600"
-  >
-    Explore Hangouts
-  </motion.h2>
-
-  <div className="flex justify-center gap-6"> {/* Flex container for side-by-side cards */}
-    {['foodies', 'nature', 'activities'].map((category) => (
-      <motion.div
-        key={category}
-        initial={{ opacity: 0.5, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.2 }}
-        whileHover={{ scale: 1.08 }}
-        whileTap={{ scale: 0.9 }}
-        className={`bg-gradient-to-br ${
-          category === 'foodies'
-            ? 'from-orange-500 to-yellow-600'
-            : category === 'nature'
-            ? 'from-green-500 to-teal-600'
-            : 'from-purple-500 to-indigo-600'
-        } text-white rounded-xl p-6 shadow-lg transform transition-all duration-200 hover:shadow-xl cursor-pointer mb-6 max-w-xs mx-auto relative overflow-hidden animate-wind`}  // Added wind animation class
-        onClick={() => handleCardClick(category)}
-      >
-        <div className="flex justify-center items-center mb-4">
-          {category === 'foodies' && <CoffeeIcon className="text-white text-5xl" />}  {/* Increased icon size */}
-          {category === 'nature' && <LeafIcon className="text-white text-5xl" />}   {/* Increased icon size */}
-          {category === 'activities' && <ActivityIcon className="text-white text-5xl" />}  {/* Increased icon size */}
+  
+        {/* Category Cards Section */}
+        <div className="w-full">
+          <motion.h2
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-4xl font-extrabold text-center mb-12 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600"
+          >
+            Explore Hangouts
+          </motion.h2>
+  
+          <div className="flex flex-wrap justify-center gap-6">
+            {['foodies', 'nature', 'activities'].map((category) => (
+              <motion.div
+                key={category}
+                initial={{ opacity: 0.5, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.2 }}
+                whileHover={{ scale: 1.08 }}
+                whileTap={{ scale: 0.9 }}
+                className={`bg-gradient-to-br ${
+                  category === 'foodies'
+                    ? 'from-orange-500 to-yellow-600'
+                    : category === 'nature'
+                    ? 'from-green-500 to-teal-600'
+                    : 'from-purple-500 to-indigo-600'
+                } text-white rounded-xl p-6 shadow-lg transform transition-all duration-200 hover:shadow-xl cursor-pointer mb-6 w-full sm:w-80 md:w-96 mx-auto relative overflow-hidden`}
+                onClick={() => handleCardClick(category)}
+              >
+                <div className="flex justify-center items-center mb-4">
+                  {category === 'foodies' && <CoffeeIcon className="text-white text-5xl" />}
+                  {category === 'nature' && <LeafIcon className="text-white text-5xl" />}
+                  {category === 'activities' && <ActivityIcon className="text-white text-5xl" />}
+                </div>
+                <h3 className="text-xl font-bold mb-2 text-center">
+                  {category === 'foodies'
+                    ? 'Foodies'
+                    : category === 'nature'
+                    ? 'Nature Lovers'
+                    : 'Fun Activities'}
+                </h3>
+                <p className="text-sm text-center">
+                  Discover places and activities for{' '}
+                  {category === 'foodies'
+                    ? 'food lovers'
+                    : category === 'nature'
+                    ? 'nature enthusiasts'
+                    : 'fun seekers'}
+                </p>
+              </motion.div>
+            ))}
+          </div>
         </div>
-        <h3 className="text-xl font-bold mb-2 text-center">
-          {category === 'foodies'
-            ? 'Foodies'
-            : category === 'nature'
-            ? 'Nature Lovers'
-            : 'Fun Activities'}
-        </h3>
-        <p className="text-sm text-center">
-          Discover places and activities for{' '}
-          {category === 'foodies'
-            ? 'food lovers'
-            : category === 'nature'
-            ? 'nature enthusiasts'
-            : 'fun seekers'}
-        </p>
-      </motion.div>
-    ))}
-  </div>
-</div>
-
-
-  {/* Bottom Section: Search Bar */}
-  <div className="w-full">
-    <motion.h2
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="text-4xl font-extrabold text-center mb-12 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600"
-    >
-      Search for Hangouts
-    </motion.h2>
-
-    {/* Search Input */}
-    <div className="relative mb-8 max-w-lg mx-auto mt-8">
-      <input
-        type="text"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder="Search for a place..."
-        className="w-full p-3 pl-10 rounded-lg shadow-md border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
-      <SearchIcon size={24} className="absolute top-3 left-3 text-gray-500" />
-    </div>
-
-    {/* Filtered Places */}
-<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-  {search.length > 0 && places.length > 0 ? (
-    places.map((place) => (
-      <motion.div
-        key={place.name}
-        className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg transform hover:scale-105 transition duration-300 ease-in-out"  // Added hover effect for cards
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        {/* Image */}
-        <img
-          src={`data:image/jpeg;base64,${place.image}`}
-          alt={place.name}
-          className="w-full h-40 object-cover rounded-lg mb-4"  // Adjusted image height to create consistent card sizes
-        />
-
-        {/* Name */}
-        <h4 className="text-lg font-semibold text-gray-900 dark:text-white">{place.name}</h4>
-
-        {/* Rating */}
-        <div className="flex items-center space-x-2 mt-2">
-          <StarIcon className="text-yellow-500" size={20} />
-          <span className="text-gray-700 dark:text-gray-300">{place.avg_rating}</span>
-        </div>
-      </motion.div>
-    ))
-) : search.length > 0 && places.length === 0 ? (
-  <p className='mx-auto'>No places found for your search.</p>
-) : (
-  <p className='mx-auto'>Start typing to search for places...</p>
-)}
-
-    </div>
-     {/* Add Review Button */}
-     <motion.button
-          onClick={() => navigate('/socials/hangouts/add')}
+  
+        {/* Search Section */}
+        <div className="w-full">
+          <motion.h2
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-4xl font-extrabold text-center mb-12 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600"
+          >
+            Search for Hangouts
+          </motion.h2>
+  
+          <div className="relative mb-8 max-w-lg mx-auto mt-8">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search for a place..."
+              className="w-full p-3 pl-10 rounded-lg shadow-md border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <SearchIcon size={24} className="absolute top-3 left-3 text-gray-500" />
+          </div>
+  
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {search.length > 0 && places.length > 0 ? (
+              places.map((place) => (
+                <motion.div
+                  key={place.name}
+                  className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg transform hover:scale-105 transition duration-300 ease-in-out"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <img
+                    src={`data:image/jpeg;base64,${place.image}`}
+                    alt={place.name}
+                    className="w-full h-40 object-cover rounded-lg mb-4"
+                  />
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white">{place.name}</h4>
+                  <div className="flex items-center space-x-2 mt-2">
+                    <StarIcon className="text-yellow-500" size={20} />
+                    <span className="text-gray-700 dark:text-gray-300">{place.avg_rating}</span>
+                  </div>
+                </motion.div>
+              ))
+            ) : search.length > 0 && places.length === 0 ? (
+              <p className="mx-auto">No places found for your search.</p>
+            ) : (
+              <p className="mx-auto">Start typing to search for places...</p>
+            )}
+          </div>
+  
+          <motion.button
+            onClick={() => navigate('/socials/hangouts/add')}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="mx-auto mt-8 px-8 py-3 bg-blue-500 text-white text-lg rounded-full hover:bg-blue-600 transition "
+            className="mx-auto mt-8 px-8 py-3 bg-blue-500 text-white text-lg rounded-full hover:bg-blue-600 transition flex items-center justify-center"
           >
             <SparklesIcon className="inline-block mr-3 text-yellow-300" size={20} />
             Add Your Review
-
           </motion.button>
-  </div>
-  
-</main>
+        </div>
+      </main>
     </div>
   );
 };
