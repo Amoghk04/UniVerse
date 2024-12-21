@@ -743,12 +743,11 @@ def add_ticket():
 @app.route('/tickets', methods=['GET'])
 def get_tickets():
     try:
-        
         tickets = tickets_collection.find()
         result = [
             {
                 "name": ticket.get("eventname"),
-                "image": base64.b64encode(ticket["image"]).decode('utf-8') if "image" in place else None,
+                "image": base64.b64encode(ticket["image"]).decode('utf-8') if "image" in ticket else None,
                 "tnum": ticket.get("tnum"),
                 "category": ticket.get("category"),
                 "message": ticket.get("message")
@@ -766,6 +765,7 @@ def get_tickets():
             "success": False,
             "error": str(e)
         }), 500
+
     
 if __name__=="__main__":
     socketio.run(app, debug=True, host="0.0.0.0", port=5000)

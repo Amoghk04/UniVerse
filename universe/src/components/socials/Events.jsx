@@ -6,13 +6,8 @@ import axios from "axios";
 const Events = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [events, setEvents] = useState([
-    { id: 1, title: "Music Festival", category: "Music", description: "Enjoy live music and great vibes.", image: "https://via.placeholder.com/150" },
-    { id: 2, title: "Art Exhibition", category: "Art", description: "Explore stunning art from local artists.", image: "https://via.placeholder.com/150" },
-    { id: 3, title: "Food Carnival", category: "Theatre", description: "Savor delicious dishes from around the world.", image: "https://via.placeholder.com/150" },
-    { id: 4, title: "Movie Night", category: "Movies", description: "Watch the latest blockbusters!", image: "https://via.placeholder.com/150" },
-  ]);
-
+  const [events, setEvents] = useState([]);
+  const [selectedEvent, setSelectedEvent] = useState(null); // Modal for event details
   const [imagePreview, setImagePreview] = useState(null);
 
   const [formData, setFormData] = useState({
@@ -23,6 +18,23 @@ const Events = () => {
     image: null,
     username: localStorage.getItem("currentUsername"),
   });
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const response = await axios.get("http://127.0.0.1:5000/tickets");
+        if (response.data.success) {
+          setEvents(response.data.data);
+        } else {
+          console.error("Failed to fetch events");
+        }
+      } catch (error) {
+        console.error("Error fetching events:", error);
+      }
+    };
+
+    fetchEvents();
+  }, []);
 
   const [isModalOpen, setIsModalOpen] = useState(false); // State to handle modal open/close
 
@@ -128,7 +140,7 @@ const Events = () => {
         </div>
       </header>
 
-      <div className="flex flex-col lg:flex-row">
+      <div className="flex justify-center items-center">
         <div className="px-4 py-6">
           <motion.h2
             initial={{ opacity: 0, y: -20 }}
@@ -181,29 +193,40 @@ const Events = () => {
           <main className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredEvents.map((event) => (
               <motion.div
-                key={event.id}
+                key={event.name}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.3 }}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="bg-gradient-to-r from-black to-gray-600 text-white p-6 rounded-xl shadow-lg flex flex-col items-center text-center"
+                className="bg-gradient-to-r from-black to-gray-600 text-white p-6 rounded-xl shadow-lg flex flex-col items-center text-center cursor-pointer"
+                onClick={() => setSelectedEvent(event)}
               >
-                <img
-                  src={event.image}
-                  alt={event.title}
-                  className="w-full h-40 object-cover rounded-lg mb-4"
-                />
-                <h2 className="text-lg font-bold mb-2">{event.title}</h2>
-                <p className="text-white mb-4">{event.description}</p>
-                <button className="px-4 py-2 bg-white text-blue-600 rounded-full hover:bg-gray-100 transition">
-                  Learn More
-                </button>
+                <img src={`data:image/jpeg;base64,${event.image}`} alt={event.name} className="w-full h-40 object-cover rounded-lg mb-4" />
+                <h2 className="text-lg font-bold mb-2">{event.name}</h2>
               </motion.div>
             ))}
           </main>
         </div>
       </div>
+
+      {/* Modal for Event Details */}
+      {selectedEvent && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+            <h2 className="text-2xl font-bold mb-4">{selectedEvent.name}</h2>
+            <p><strong>Category:</strong> {selectedEvent.category}</p>
+            <p><strong>Tickets Available:</strong> {selectedEvent.tnum}</p>
+            <p><strong>Message:</strong> {selectedEvent.message}</p>
+            <button
+              onClick={() => setSelectedEvent(null)}
+              className="px-4 py-2 rounded-full bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-white mt-4"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Modal Form */}
       {isModalOpen && (
