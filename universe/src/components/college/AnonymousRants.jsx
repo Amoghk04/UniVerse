@@ -60,13 +60,13 @@ const RantPage = () => {
       <header className="sticky top-0 z-50 backdrop-blur-md bg-white/70 dark:bg-gray-900/70 shadow-sm">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-            Anonymous Rants
+            Anonymous Posts
           </h1>
           <div className="flex items-center space-x-4">
             <div className="relative">
               <input
                 type="text"
-                placeholder="Search rants..."
+                placeholder="Search posts..."
                 className="
                   pl-10 pr-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 
                   text-gray-800 dark:text-gray-200 placeholder-gray-500
@@ -159,7 +159,7 @@ const RantPage = () => {
               whileTap={{ scale: 0.95 }}
               className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
             >
-              Add Rant
+              Add Posts
             </motion.button>
           </div>
         </div>
