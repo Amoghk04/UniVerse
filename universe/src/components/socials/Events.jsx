@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { SunIcon, MoonIcon, UserIcon, SparklesIcon } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { SunIcon, MoonIcon, UserIcon, SparklesIcon, Heart, X, Calendar, Ticket, DollarSign, Mail  } from "lucide-react";
 import axios from "axios";
 
 const Events = () => {
@@ -9,6 +9,7 @@ const Events = () => {
   const [events, setEvents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null); // Modal for event details
   const [imagePreview, setImagePreview] = useState(null);
+  const [interestedEvents, setInterestedEvents] = useState(new Set());
 
   const [formData, setFormData] = useState({
     eventname: "",
@@ -21,6 +22,18 @@ const Events = () => {
     image: null,
     username: localStorage.getItem("currentUsername"),
   });
+
+  const toggleInterested = (eventId) => {
+    setInterestedEvents(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(eventId)) {
+        newSet.delete(eventId);
+      } else {
+        newSet.add(eventId);
+      }
+      return newSet;
+    });
+  };
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -109,6 +122,101 @@ const Events = () => {
       reader.readAsDataURL(file);
     }
   };
+
+  const EventDetailsModal = ({ event, onClose }) => (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center p-4 z-50"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl overflow-hidden max-w-4xl w-full flex flex-col md:flex-row"
+      >
+        {/* Left side - Image */}
+        <div className="md:w-1/2 relative">
+          <img
+            src={`data:image/jpeg;base64,${event.image}`}
+            alt={event.eventname}
+            className="w-full h-full object-cover"
+          />
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 p-2 rounded-full bg-black bg-opacity-50 hover:bg-opacity-70 text-white transition-all"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        {/* Right side - Details */}
+        <div className="md:w-1/2 p-6 space-y-6">
+          <div className="space-y-4">
+            <h2 className="text-3xl font-bold">{event.eventname}</h2>
+            <div className="flex items-center text-gray-600 dark:text-gray-300 space-x-2">
+              <Calendar className="w-5 h-5" />
+              <span>{new Date(event.eventdate).toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}</span>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300">
+              <Ticket className="w-5 h-5" />
+              <span>{event.tnum} tickets available</span>
+            </div>
+            
+            <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300">
+              <DollarSign className="w-5 h-5" />
+              <span className="text-xl font-semibold">₹{event.price}</span>
+            </div>
+
+            <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
+              <h3 className="font-semibold mb-2 flex items-center gap-2">
+                <Mail className="w-5 h-5" />
+                Contact Information
+              </h3>
+              <p className="text-gray-700 dark:text-gray-300">
+                <span className="font-medium">{event.ctype}:</span> {event.contact}
+              </p>
+            </div>
+
+            <div className="pt-4 flex space-x-4">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => toggleInterested(event._id)}
+                className={`flex-1 py-3 px-6 rounded-lg flex items-center justify-center space-x-2 transition-colors
+                  ${interestedEvents.has(event._id)
+                    ? 'bg-red-500 text-white'
+                    : 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-2 border-red-500'
+                  }`}
+              >
+                <Heart
+                  className={`w-5 h-5 ${interestedEvents.has(event._id) ? 'fill-current' : ''}`}
+                />
+                <span>{interestedEvents.has(event._id) ? 'Interested' : 'Show Interest'}</span>
+              </motion.button>
+            </div>
+          </div>
+
+          <div className="pt-4">
+            <span className="inline-block px-4 py-2 rounded-full text-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
+              {event.category}
+            </span>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
 
   return (
     <div
@@ -217,23 +325,14 @@ const Events = () => {
       </div>
 
       {/* Modal for Event Details */}
-      {selectedEvent && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-            <h2 className="text-2xl font-bold mb-4">{selectedEvent.name}</h2>
-            <p><strong>Event Date:</strong> {selectedEvent?.date || "No date available"}</p>
-            <p><strong>Price Per Ticket:</strong>₹{selectedEvent.price}</p>
-            <p><strong>Tickets Available:</strong> {selectedEvent.tnum}</p>
-            <p><strong>Contact At:</strong>{selectedEvent.ctype}:{selectedEvent.contact}</p>
-            <button
-              onClick={() => setSelectedEvent(null)}
-              className="px-4 py-2 rounded-full bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-white mt-4"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {selectedEvent && (
+          <EventDetailsModal
+            event={selectedEvent}
+            onClose={() => setSelectedEvent(null)}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Modal Form */}
       {isModalOpen && (
