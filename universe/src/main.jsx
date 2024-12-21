@@ -22,6 +22,7 @@ import Activities from './components/socials/hangouts/Activities';
 import Restaurants from './components/socials/hangouts/Restaurants.jsx';
 import Nature from './components/socials/hangouts/Nature.jsx';
 import GamingComms from './components/GamingComms.jsx';
+import AlumniLinkedInPage from './components/AlumniInfoGather.jsx';
 // Import styles
 import './index.css';
 
@@ -34,6 +35,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <Route path="/" element={<UnifiedAuthPage />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/alumni-linkedin" element={<AlumniLinkedInPage />} />
 
         {/* Education Routes */}
         <Route path="/education" element={<EducationPage />} />

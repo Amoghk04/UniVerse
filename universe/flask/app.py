@@ -8,10 +8,10 @@ from flask_socketio import SocketIO, join_room, leave_room, emit, rooms
 from bson import Binary
 import base64
 import requests
-# from datetime import datetime
-# from langchain_loader import generate_data_store
-# from query_data import get_answer, delete_memory
-# from werkzeug.utils import secure_filename
+from datetime import datetime
+from langchain_loader import generate_data_store
+from query_data import get_answer, delete_memory
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
@@ -114,7 +114,7 @@ def register_alumni():
         "companies": companies,
         "skills": skills
     }
-    
+
     # Insert alumni data into the collection
     users_collection.insert_one(alumni_data)
 

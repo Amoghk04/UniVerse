@@ -65,27 +65,33 @@ const UnifiedAuthPage = () => {
       if (response.ok) {
         console.log(result.message || `${currentForm} Successful`);
   
-        if (currentForm === 'login') {
+        if (formData.isAlumni) {
+          localStorage.setItem('currentUsername', formData.username);
+          localStorage.setItem('currentEmail', formData.email);
+          localStorage.setItem('currentName', formData.name);
+          localStorage.setItem('currentPassword', formData.password);
+          localStorage.setItem('currentIsAlumni', formData.isAlumni);
+          navigate('/alumni-linkedin'); // Redirect to alumni-specific page
+        } else if (currentForm === 'login') {
           // Store the username in local storage
           localStorage.setItem('currentUsername', formData.username);
           navigate('/home');
-        }
-        else if (currentForm === "register") {
+        } else if (currentForm === 'register') {
           navigate('/');
-        }
-        else if (currentForm === "forgotPassword") {
-          navigate("/home");
+        } else if (currentForm === 'forgotPassword') {
+          navigate('/home');
         }
       } else {
         const errorMessage = result.error || result.message || 'Something went wrong';
         console.error(errorMessage);
-        alert(errorMessage); 
+        alert(errorMessage);
       }
     } catch (error) {
       console.error('Error:', error);
       alert('An unexpected error occurred. Please try again later.');
     }
   };
+  
   
 
   const switchForm = (formType) => {
