@@ -844,40 +844,48 @@ def handle_rants():
         print(e)
         return jsonify({"error": str(e)}), 500
     
-@app.route("/<username>/games", methods=["POST","GET"])
+@app.route("/<username>/games", methods=["POST", "GET"])
 def handle_gaming(username):
     try:
         if request.method == "POST":
+            # Retrieve data from the request
             game_name = request.json.get("gamename")
             link = request.json.get("gamelink")
+            game_code = request.json.get("gamecode")
             max_players = request.json.get("maxplayers")
 
-            if not game_name or not link or not max_players:
-                return jsonify({"Error":"Please enter all the fields"}), 400
+            # Validate required fields (game_name and max_players)
+            if not game_name or not max_players:
+                return jsonify({"Error": "Please enter all the required fields"}), 400
 
-            games_collection.insert_one({
-                "game_name":game_name,
-                "game_link":link,
+            # Insert the game into the database
+            game_data = {
+                "game_name": game_name,
+                "game_link": link if link else None,  # Optional field, if not provided, set to None
+                "game_code": game_code if game_code else None,  # Optional field, if not provided, set to None
                 "username": username,
-                "max_players":max_players
-            })
+                "max_players": max_players
+            }
 
-            return jsonify({"message":"Added games successfully"}), 200
-        
+            games_collection.insert_one(game_data)
+
+            return jsonify({"message": "Added game successfully"}), 200
+
         elif request.method == "GET":
+            # Retrieve all games from the database
             games = list(games_collection.find({}, {"_id": 0}))
             # Map fields to match React expectations
             for game in games:
                 game["name"] = game.pop("game_name")
                 game["link"] = game.pop("game_link")
+                game["code"] = game.pop("game_code") if game.get("game_code") else None
                 game["maxPlayers"] = game.pop("max_players")
             return jsonify(games), 200
-
 
     except Exception as e:
         print(e)
         return jsonify({"Error": str(e)}), 500
-    
+
 @app.route('/search', methods=['GET'])
 def search_places():
     query = request.args.get('query')

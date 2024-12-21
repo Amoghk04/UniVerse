@@ -10,10 +10,12 @@ const GamingComms = () => {
   const [newGame, setNewGame] = useState({
     name: '',
     link: '',
-    username: localStorage.getItem("currentUsername"),
-    maxPlayers: ''
+    gameCode: '', // Added field for game code
+    username: localStorage.getItem('currentUsername'),
+    maxPlayers: '',
   });
-  const username = localStorage.getItem("currentUsername");
+  const [alertMessage, setAlertMessage] = useState('');
+  const username = localStorage.getItem('currentUsername');
   const url = 'http://127.0.0.1:5000';
 
   useEffect(() => {
@@ -25,23 +27,34 @@ const GamingComms = () => {
 
   const addGame = () => {
     axios
-      .post(`${url}/${username}/games`, {
-        gamename: newGame.name,
-        gamelink: newGame.link,
-        username: username,
-        maxplayers: newGame.maxPlayers,
-      }, {
-        headers: {
-          'Content-Type': 'application/json'
+      .post(
+        `${url}/${username}/games`,
+        {
+          gamename: newGame.name,
+          gamelink: newGame.link,
+          gamecode: newGame.gameCode, // Pass gameCode
+          username: username,
+          maxplayers: newGame.maxPlayers,
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
         }
-      })
+      )
       .then((response) => {
         setGames([...games, response.data]);
-        setNewGame({ name: '', link: '', username: username, maxPlayers: '' });
+        setNewGame({ name: '', link: '', gameCode: '', username: username, maxPlayers: '' });
         setIsModalOpen(false);
+        setAlertMessage('Game added successfully!'); // Show success message
+        setTimeout(() => setAlertMessage(''), 3000); // Hide the alert after 3 seconds
       })
-      .catch((error) => console.error('Error adding game:', error));
-  };  
+      .catch((error) => {
+        console.error('Error adding game:', error);
+        setAlertMessage('Error adding game. Please try again.'); // Show error message
+        setTimeout(() => setAlertMessage(''), 3000); // Hide the alert after 3 seconds
+      });
+  };
 
   const filteredGames = games.filter(
     (game) =>
@@ -51,11 +64,11 @@ const GamingComms = () => {
 
   return (
     <div
-      className={`
+      className="
         min-h-screen bg-gradient-to-br from-green-50 to-blue-50 
         dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-white
         transition-all duration-500
-      `}
+      "
     >
       {/* Header with Search */}
       <header className="sticky top-0 z-50 backdrop-blur-md bg-white/70 dark:bg-gray-900/70 shadow-sm">
@@ -109,21 +122,32 @@ const GamingComms = () => {
                 hover:shadow-xl transition-all
               "
             >
-              <h3 className="text-xl font-bold mb-2">{game.name}</h3>
-              <p className="text-sm mb-2">
-                Hosted by: <span className="font-medium">{game.username}</span>
-              </p>
-              <p className="text-sm mb-2">
-                Max Players: <span className="font-medium">{game.maxPlayers}</span>
-              </p>
-              <a
-                href={game.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-yellow-300 underline"
-              >
-                Join Game
-              </a>
+             <h3 className="text-xl font-bold mb-2">{game.name}</h3>
+<p className="text-sm mb-2">
+  Hosted by: <span className="font-medium">{game.username}</span>
+</p>
+<p className="text-sm mb-2">
+  Max Players: <span className="font-medium">{game.maxPlayers}</span>
+</p>
+
+{/* Check if there's a link or a code */}
+{game.link ? (
+  <a
+    href={game.link}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="text-sm text-yellow-300 underline"
+  >
+    Join Game
+  </a>
+) : game.code ? (
+  <p className="text-sm text-yellow-300">
+    Game Code: <span className="font-medium">{game.code}</span>
+  </p>
+) : (
+  <p className="text-sm text-red-500">No link or code available</p>
+)}
+
             </motion.div>
           ))}
         </div>
@@ -166,6 +190,19 @@ const GamingComms = () => {
               />
             </div>
             <div className="mb-4">
+              <label className="block text-sm font-medium mb-2">Game Code</label>
+              <input
+                type="text"
+                className="
+                  w-full p-2 rounded-lg bg-gray-100 dark:bg-gray-700
+                  text-gray-900 dark:text-gray-200 focus:outline-none
+                  focus:ring-2 focus:ring-green-500
+                "
+                value={newGame.gameCode}
+                onChange={(e) => setNewGame({ ...newGame, gameCode: e.target.value })}
+              />
+            </div>
+            <div className="mb-4">
               <label className="block text-sm font-medium mb-2">Max Players</label>
               <input
                 type="number"
@@ -190,12 +227,12 @@ const GamingComms = () => {
         </div>
       )}
 
-      {/* Footer */}
-      <footer className="bg-gray-100 dark:bg-gray-800 py-6">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-sm text-gray-600 dark:text-gray-400">© 2024 Gaming Communities Platform</p>
+      {/* Alert Message */}
+      {alertMessage && (
+        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white py-2 px-4 rounded-md shadow-md">
+          {alertMessage}
         </div>
-      </footer>
+      )}
     </div>
   );
 };
