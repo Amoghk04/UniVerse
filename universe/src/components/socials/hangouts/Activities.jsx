@@ -12,9 +12,11 @@ const Activities = () => {
   const [reviews, setReviews] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
-  const [darkMode, setDarkMode] = useState(
-    localStorage.getItem("theme") === "dark" || false
-  );
+
+  const [darkMode, setDarkMode] = useState(false);
+  
+  // Search state
+  const [query, setQuery] = useState('');
 
   const fetchActivities = async () => {
     try {
