@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
-import { SunIcon, MoonIcon, UserIcon} from 'lucide-react';
+import { UserIcon} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Nature = () => {
@@ -11,8 +11,9 @@ const Nature = () => {
   const [reviews, setReviews] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
-
-const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(
+    localStorage.getItem("theme") === "dark" || false
+  );
 
 // Search state
   const [query, setQuery] = useState("");
@@ -101,14 +102,6 @@ const [darkMode, setDarkMode] = useState(false);
           <h1 className="text-2xl font-bold">&nbsp;&nbsp;&nbsp;Nature</h1>
         </div>
         <div className="flex items-center space-x-4">
-          <motion.button
-            onClick={toggleDarkMode}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-          >
-            {darkMode ? <SunIcon className="text-yellow-500" /> : <MoonIcon className="text-blue-600" />}
-          </motion.button>
           <motion.button
             onClick={() => navigate('/profile')}
             whileHover={{ scale: 1.05 }}

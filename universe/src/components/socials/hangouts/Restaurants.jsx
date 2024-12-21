@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { motion } from "framer-motion";
-import { SunIcon, MoonIcon, UserIcon } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { motion } from 'framer-motion';
+import { UserIcon } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+
+
 
 const Restaurants = () => {
   const [foods, setFoods] = useState([]);
@@ -11,7 +13,9 @@ const Restaurants = () => {
   const [reviews, setReviews] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(
+    localStorage.getItem("theme") === "dark" || false
+  );
 
   // Search state
   const [query, setQuery] = useState("");
@@ -93,24 +97,7 @@ const Restaurants = () => {
           <h1 className="text-2xl font-bold">Food Joints</h1>
         </div>
         <div className="flex items-center space-x-4">
-          <motion.button
-            onClick={toggleDarkMode}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-          >
-            {darkMode ? (
-              <SunIcon className="text-yellow-500" />
-            ) : (
-              <MoonIcon className="text-blue-600" />
-            )}
-          </motion.button>
-          <motion.button
-            onClick={() => navigate("/profile")}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-          >
+          <motion.button onClick={() => navigate('/profile')} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
             <UserIcon className="text-gray-800 dark:text-gray-200" />
           </motion.button>
         </div>

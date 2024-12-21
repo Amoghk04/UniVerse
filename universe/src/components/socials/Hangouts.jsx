@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
-import { SparklesIcon, SunIcon, MoonIcon, UserIcon, SearchIcon, CoffeeIcon, LeafIcon, ActivityIcon, StarIcon } from 'lucide-react';
+import { SparklesIcon, UserIcon, SearchIcon, CoffeeIcon, LeafIcon, ActivityIcon, StarIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
@@ -11,7 +11,9 @@ const Hangouts = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [places, setPlaces] = useState([]);
   const [topRatedPlaces, setTopRatedPlaces] = useState([]);
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(
+    localStorage.getItem("theme") === "dark" || false
+  );
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
   const url = "http://127.0.0.1:5000";
@@ -116,14 +118,6 @@ const Hangouts = () => {
           <h1 className="text-2xl font-bold">&nbsp;&nbsp;&nbsp;Hangouts Near You</h1>
         </div>
         <div className="flex items-center space-x-4">
-          <motion.button
-            onClick={toggleDarkMode}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-          >
-            {darkMode ? <SunIcon className="text-yellow-500" /> : <MoonIcon className="text-blue-600" />}
-          </motion.button>
           <motion.button
             onClick={() => navigate('/profile')}
             whileHover={{ scale: 1.05 }}

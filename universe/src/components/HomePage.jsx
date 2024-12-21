@@ -7,13 +7,14 @@ import {
   UniversityIcon, 
   SunIcon, 
   MoonIcon, 
-  SparklesIcon, 
   UserIcon, 
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const HomePage = () => {
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(
+    localStorage.getItem("theme") === "dark" || false
+  );
   const navigate = useNavigate();
 
   // Theme management with local storage
@@ -131,15 +132,6 @@ const HomePage = () => {
           ))}
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="bg-gray-100 dark:bg-gray-800 py-6">
-        <div className="container mx-auto px-4 text-center">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            © 2024 Ramaiah Institute of Technology Social Platform
-          </p>
-        </div>
-      </footer>
     </div>
   );
 };

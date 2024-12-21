@@ -6,7 +6,9 @@ const AlumniInfoGather = () => {
   const [yearPassOut, setYearPassOut] = useState('');
   const [companies, setCompanies] = useState(['']);
   const [skills, setSkills] = useState(['']);
-  const [darkMode, setDarkMode] = useState(true);
+  const [darkMode, setDarkMode] = useState(
+    localStorage.getItem("theme") === "dark" || false
+  );
   const navigate = useNavigate();
   const username = localStorage.getItem('currentUsername');
   const name = localStorage.getItem('currentName');

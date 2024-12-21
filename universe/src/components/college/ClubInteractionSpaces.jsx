@@ -93,7 +93,9 @@ const ClubInteractionSpaces = () => {
     const [showNotifications, setShowNotifications] = useState(false);
     const [editingEvent, setEditingEvent] = useState(null);
     const [showEventForm, setShowEventForm] = useState(false);
-    const [darkMode, setDarkMode] = useState(false);
+    const [darkMode, setDarkMode] = useState(
+        localStorage.getItem("theme") === "dark" || false
+      );
     const [membersList, setMembersList] = useState({});
     const [showMembers, setShowMembers] = useState(false);
     const [error, setError] = useState(null);
@@ -127,14 +129,6 @@ const ClubInteractionSpaces = () => {
             chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
         }
     }, [messages]);
-
-    useEffect(() => {
-        const theme = localStorage.getItem('theme');
-        if (theme) {
-            setDarkMode(theme === 'dark');
-            document.documentElement.classList.toggle('dark', theme === 'dark');
-        }
-    }, []);
 
     useEffect(() => {
         if (user) {
@@ -251,12 +245,6 @@ const ClubInteractionSpaces = () => {
             read: false,
         };
         setNotifications((prev) => [notification, ...prev]);
-    };
-
-    const toggleDarkMode = () => {
-        setDarkMode(!darkMode);
-        localStorage.setItem('theme', !darkMode ? 'dark' : 'light');
-        document.documentElement.classList.toggle('dark');
     };
 
     const filteredClubs = clubs.filter(
@@ -397,12 +385,6 @@ const ClubInteractionSpaces = () => {
                                 {notifications.some((n) => !n.read) && (
                                     <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full" />
                                 )}
-                            </button>
-                            <button
-                                onClick={toggleDarkMode}
-                                className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
-                            >
-                                {darkMode ? '🌞' : '🌙'}
                             </button>
                         </div>
                     </div>

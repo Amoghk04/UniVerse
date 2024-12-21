@@ -21,7 +21,9 @@ const UnifiedAuthPage = () => {
     isAlumni: false,
   });
   const [verificationError, setVerificationError] = useState('');
-  const [darkMode, setDarkMode] = useState(true);
+  const [darkMode, setDarkMode] = useState(
+    localStorage.getItem("theme") === "dark" || false
+  );
   const navigate = useNavigate();
 
   const handleChange = (e) => {
