@@ -121,31 +121,29 @@ const Activities = () => {
       </div>
 
       {/* Activities Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-4">
         {filteredActivities.length > 0 ? (
           filteredActivities.map((activity) => (
-            <div
-              key={activity._id}
+            <motion.div
+              key={activity.id}
+              className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow hover:shadow-lg transition cursor-pointer"
+              whileHover={{ scale: 1.05 }}
               onClick={() => fetchReviews(activity.name)}
-              className="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 cursor-pointer"
             >
               <img
                 src={`data:image/jpeg;base64,${activity.image}`}
                 alt={activity.name}
-                className="w-full h-48 object-cover"
+                className="w-full h-40 object-cover rounded-md mb-4"
               />
-              <div className="p-4">
-                <h2 className="text-xl font-bold">{activity.name}</h2>
-                <p className="text-sm text-gray-400 flex items-center">
-                  ⭐
-                  Rating: {activity.avg_rating}
-                </p>
-              </div>
-            </div>
+              <h2 className="font-bold text-lg">{activity.name}</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {activity.type}
+              </p>
+            </motion.div>
           ))
         ) : (
           <p className="col-span-full text-center text-gray-500">
-            No activities found.
+            No places found.
           </p>
         )}
       </div>

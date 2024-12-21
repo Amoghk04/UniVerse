@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { motion } from 'framer-motion';
-import { SparklesIcon, UserIcon, SearchIcon, CoffeeIcon, LeafIcon, ActivityIcon, StarIcon } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { SparklesIcon, UserIcon, SearchIcon, CoffeeIcon, LeafIcon, ActivityIcon, StarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
-import Slider from 'react-slick';
 
 const Hangouts = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -22,7 +21,44 @@ const Hangouts = () => {
   const navigate = useNavigate();
   const url = "http://127.0.0.1:5000";
 
-  // Fetch top-rated places from the backend
+  // Carousel state
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [displayCount, setDisplayCount] = useState(3);
+
+  // Update display count based on window width
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 640) {
+        setDisplayCount(1);
+      } else if (window.innerWidth < 1024) {
+        setDisplayCount(2);
+      } else {
+        setDisplayCount(3);
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Carousel navigation functions
+  const nextSlide = () => {
+    setCurrentIndex((prevIndex) => 
+      prevIndex + displayCount >= topRatedPlaces.length ? 0 : prevIndex + displayCount
+    );
+  };
+
+  const prevSlide = () => {
+    setCurrentIndex((prevIndex) => 
+      prevIndex - displayCount < 0 ? Math.max(0, topRatedPlaces.length - displayCount) : prevIndex - displayCount
+    );
+  };
+
+  // Get visible places for carousel
+  const visiblePlaces = topRatedPlaces.slice(currentIndex, currentIndex + displayCount);
+
+  // Rest of your existing effects...
   useEffect(() => {
     const fetchTopRatedPlaces = async () => {
       try {
@@ -119,7 +155,7 @@ const Hangouts = () => {
           </motion.button>
         </div>
       </header>
-
+  
       <main className="container mx-auto px-4 py-12 flex flex-col gap-6">
         <motion.h2 initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="text-4xl font-extrabold text-center mb-12 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
           Top Rated Hangouts
