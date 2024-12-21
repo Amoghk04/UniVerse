@@ -12,7 +12,8 @@ import {
   MessageCircleIcon,
   PlusIcon,
   XIcon,
-} from "lucide-react";
+  SearchIcon,
+} from "lucide-react"; // Ensure all icons used are available in lucide-react
 import Confetti from "react-confetti";
 import moment from "moment";
 import { useNavigate } from "react-router-dom";
@@ -36,6 +37,8 @@ const HomePage = () => {
   const [newPostImage, setNewPostImage] = useState("");
   const [newPostDescription, setNewPostDescription] = useState("");
   const [newPostTags, setNewPostTags] = useState("");
+
+  // Removed Insights Modal States
 
   // Used for measuring confetti size
   const confettiRef = useRef(null);
@@ -61,6 +64,15 @@ const HomePage = () => {
       icon: UniversityIcon,
       description: "Dynamic platform for campus experiences",
       color: "bg-gradient-to-br from-pink-500 to-purple-600",
+    },
+    {
+      id: "insights",
+      title: "Insights",
+      icon: HeartIcon,
+      description: "Discover and validate the best academic and professional resources",
+      color: "bg-gradient-to-br from-yellow-500 to-orange-600",
+      external: true, // Custom flag to indicate external link
+      url: "https://insights.surf/", // External URL
     },
   ];
 
@@ -153,7 +165,7 @@ const HomePage = () => {
     }));
   };
 
-  // Create New Post
+  // Handle Create Post
   const handleCreatePost = () => {
     if (!newPostTitle || !newPostDescription) return; // Basic validation
 
@@ -210,7 +222,13 @@ const HomePage = () => {
             {sections.map((section) => (
               <motion.button
                 key={section.id}
-                onClick={() => navigate(`/${section.id}`)}
+                onClick={() => {
+                  if (section.external && section.url) {
+                    window.open(section.url, "_blank", "noopener,noreferrer");
+                  } else {
+                    navigate(`/${section.id}`);
+                  }
+                }}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className={`${section.color} text-white rounded-xl p-2 flex items-center space-x-2 shadow-lg transition-transform focus:outline-none`}
@@ -283,18 +301,18 @@ const HomePage = () => {
                 />
                 <div>
                   <h2 className="text-lg font-bold dark:text-gray-100">
-                    John Doe
+                    Abhay Bhandarkar
                   </h2>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    @johndoe
+                    @absbhandarkar
                   </p>
                 </div>
               </div>
               <hr className="my-4 border-gray-200 dark:border-gray-700" />
               <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
                 <p>Major: Computer Science</p>
-                <p>Year: Junior</p>
-                <p>Member of: Hack Club, AI Society</p>
+                <p>Year: Senior</p>
+                <p>Member of: IEEE CS, STARDUST</p>
               </div>
             </div>
 
@@ -458,45 +476,54 @@ const HomePage = () => {
             </div>
 
             {/* Quick Links / Ads / Etc. */}
-            <div className="rounded-xl shadow p-4 bg-white dark:bg-gray-800">
-              <h2 className="text-xl font-bold mb-4 dark:text-gray-100">
-                Quick Links
-              </h2>
-              <ul className="space-y-2 text-sm dark:text-gray-300">
-                <li>
-                  <a
-                    href="#!"
-                    className="hover:text-blue-500 dark:hover:text-blue-400"
-                  >
-                    Library Portal
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#!"
-                    className="hover:text-blue-500 dark:hover:text-blue-400"
-                  >
-                    Exam Results
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#!"
-                    className="hover:text-blue-500 dark:hover:text-blue-400"
-                  >
-                    Placement Cell
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#!"
-                    className="hover:text-blue-500 dark:hover:text-blue-400"
-                  >
-                    Clubs & Societies
-                  </a>
-                </li>
-              </ul>
-            </div>
+            {/* Quick Links / Ads / Etc. */}
+<div className="rounded-xl shadow p-4 bg-white dark:bg-gray-800">
+  <h2 className="text-xl font-bold mb-4 dark:text-gray-100">
+    Quick Links
+  </h2>
+  <ul className="space-y-2 text-sm dark:text-gray-300">
+    <li>
+      <a
+        href="https://www.msritlibrary.org/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="hover:text-blue-500 dark:hover:text-blue-400"
+      >
+        Library Portal
+      </a>
+    </li>
+    <li>
+      <a
+        href="https://exam.msrit.edu/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="hover:text-blue-500 dark:hover:text-blue-400"
+      >
+        Exam Results
+      </a>
+    </li>
+    <li>
+      <a
+        href="https://msrit.edu/placement.html"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="hover:text-blue-500 dark:hover:text-blue-400"
+      >
+        Placement Cell
+      </a>
+    </li>
+    <li>
+      <a
+        href="https://www.msrit.edu/support/cocurricular.html"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="hover:text-blue-500 dark:hover:text-blue-400"
+      >
+        Clubs & Societies
+      </a>
+    </li>
+  </ul>
+</div>
           </aside>
         </div>
       </main>
