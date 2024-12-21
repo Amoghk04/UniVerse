@@ -36,15 +36,14 @@ const CollegeLifePage = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
-      <header className="bg-white dark:bg-gray-800 shadow-md py-4 flex items-center justify-between px-4">
-        <button
-          onClick={() => navigate('/home')}
-          className="px-3 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition"
-        >
-          Back
-        </button>
-        <h1 className="text-2xl font-bold">College Life</h1>
-        <div className="w-12"></div>
+      <header className="bg-white dark:bg-gray-800 shadow-md py-4 flex items-center justify-between px-4 w-full">
+        
+        <div className="flex-1 flex justify-center">
+          <h1 className="text-4xl font-extrabold text-center bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600">College</h1>
+        </div>
+        <div className="flex items-center space-x-4">
+         
+        </div>
       </header>
 
       <main className="container mx-auto px-4 py-12">

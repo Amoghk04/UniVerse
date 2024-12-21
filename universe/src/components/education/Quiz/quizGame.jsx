@@ -40,10 +40,10 @@ const QuizGame = () => {
   ];
 
   useEffect(() => {
-    const newSocket = io("http://127.0.0.1:5000");
+    const newSocket = io("http://20.197.34.29:5000");
     setSocket(newSocket);
 
-    var url = `http://127.0.0.1:5000/rooms/${roomCode}`;
+    var url = `http://20.197.34.29:5000/rooms/${roomCode}`;
     console.log(url);
     fetch(url)
       .then((response) => response.json())
