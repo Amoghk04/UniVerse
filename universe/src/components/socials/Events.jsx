@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { UserIcon, SparklesIcon, BookPlus, X, Calendar, Ticket, DollarSign, Mail  } from "lucide-react";
+import { UserIcon, PlusCircleIcon, X, Calendar, Ticket, IndianRupee, Mail  } from "lucide-react";
 import axios from "axios";
 
 const Events = () => {
@@ -28,6 +28,7 @@ const Events = () => {
     const fetchEvents = async () => {
       try {
         const response = await axios.get("http://127.0.0.1:5000/tickets");
+        console.log(response.data);
         if (response.data.success) {
           setEvents(response.data.data);
         } else {
@@ -148,12 +149,15 @@ const Events = () => {
             <h2 className="text-3xl font-bold">{event.eventname}</h2>
             <div className="flex items-center text-gray-600 dark:text-gray-300 space-x-2">
               <Calendar className="w-5 h-5" />
-              <span>{new Date(event.eventdate).toLocaleDateString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}</span>
+              <span>
+  {new Date(event.date).toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })}
+</span>
+
             </div>
           </div>
 
@@ -164,8 +168,8 @@ const Events = () => {
             </div>
             
             <div className="flex items-center space-x-2 text-gray-700 dark:text-gray-300">
-              <DollarSign className="w-5 h-5" />
-              <span className="text-xl font-semibold">₹{event.price}</span>
+              <IndianRupee className="w-5 h-5" />
+              <span className="text-xl font-semibold">{event.price}</span>
             </div>
 
             <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg">
@@ -197,11 +201,24 @@ const Events = () => {
     >
       {/* Header */}
       <header className="bg-white dark:bg-gray-800 shadow-md py-4 flex items-center justify-between px-4 w-full">
-        
+        <button
+          onClick={() => window.history.back()}
+          className="px-3 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition"
+        >
+          Back
+        </button>
         <div className="flex-1 flex justify-center">
-          <h1 className="text-4xl font-extrabold text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-green-600">Events</h1>
+          <h1 className="text-2xl font-bold">Events</h1>
         </div>
-        
+        <div className="flex items-center space-x-4">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+          >
+            <UserIcon className="text-gray-800 dark:text-gray-200" />
+          </motion.button>
+        </div>
       </header>
 
       <div className="flex justify-center items-center">
@@ -214,7 +231,7 @@ const Events = () => {
           >
             Live Tickets
           </motion.h2>
-<div>
+        <div>
           <div className="relative mb-4 flex justify-between items-center space-x-4">
             <input
               type="text"
@@ -228,7 +245,7 @@ const Events = () => {
               className="flex items-center justify-center w-12 h-12 bg-blue-500 text-white rounded-full shadow-lg hover:bg-blue-600 transition"
               title="Add Ticket"
             >
-              <BookPlus className="mr-1" />
+              <PlusCircleIcon className="mr-1" />
             </motion.button>
           </div>
 
@@ -252,7 +269,7 @@ const Events = () => {
               ))}
             </div>
           </section>
-</div>
+        </div>
           {/* Events Grid */}
           <main className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredEvents.map((event) => (
@@ -263,14 +280,23 @@ const Events = () => {
                 transition={{ duration: 0.3 }}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="bg-gradient-to-r from-black to-gray-600 text-white p-6 rounded-xl shadow-lg flex flex-col items-center text-center cursor-pointer"
+                className={`${
+                  darkMode ? 'bg-gray-800 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
+                } p-6 rounded-xl shadow-lg flex flex-col items-center text-center cursor-pointer`}
                 onClick={() => setSelectedEvent(event)}
               >
-                <img src={`data:image/jpeg;base64,${event.image}`} alt={event.name} className="w-full h-40 object-cover rounded-lg mb-4" />
-                <h2 className="text-lg font-bold mb-2">{event.name}</h2>
+                <img 
+                  src={`data:image/jpeg;base64,${event.image}`} 
+                  alt={event.name} 
+                  className={`w-full h-40 object-cover rounded-lg mb-4 ${darkMode ? 'opacity-80' : ''}`} 
+                />
+                <h2 className={`text-lg font-bold mb-2 ${darkMode ? 'text-white' : 'text-black'}`}>
+                  {event.name}
+                </h2>
               </motion.div>
             ))}
           </main>
+
         </div>
       </div>
 
