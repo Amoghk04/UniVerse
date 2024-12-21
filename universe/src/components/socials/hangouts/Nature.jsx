@@ -14,10 +14,15 @@ const Nature = () => {
 
 const [darkMode, setDarkMode] = useState(false);
 
+// Search state
+  const [query, setQuery] = useState("");
+  const [filteredNature, setFilteredNatures] = useState([]);
+
   const fetchNature = async () => {
     try {
       const response = await axios.get('http://127.0.0.1:5000/nature');
       setNature(response.data);
+      setFilteredNatures(response.data);
     } catch (error) {
       console.error('Error fetching nature:', error);
     } finally {
@@ -45,6 +50,19 @@ const [darkMode, setDarkMode] = useState(false);
   useEffect(() => {
     fetchNature();
   }, []);
+
+  useEffect(() => {
+      
+      if (query.trim() === "") {
+        setFilteredNatures(nature); }
+      else{setFilteredNatures(
+          nature.filter((np) =>
+            np.name.toLowerCase().includes(query.toLowerCase())
+          )
+        );
+      }
+    }, [query, nature]);
+  
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
@@ -101,26 +119,44 @@ const [darkMode, setDarkMode] = useState(false);
           </motion.button>
         </div>
       </header>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {nature.map((activity) => (
-          <div
-            key={activity._id}
-            onClick={() => fetchReviews(activity.name)}
-            className="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 cursor-pointer"
-          >
-            <img
-              src={`data:image/jpeg;base64,${activity.image}`}
-              alt={activity.name}
-              className="w-full h-48 object-cover"
-            />
-            <div className="p-4">
-              <h2 className="text-xl font-bold">{activity.name}</h2>
-              <p className="text-sm text-gray-400">
-                Average Rating: {activity.avg_rating}
+
+      {/* Search Bar */}
+      <div className="flex justify-center py-6">
+        <input
+          type="text"
+          placeholder="Search for a place..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="w-full max-w-lg p-2 border rounded-md shadow focus:outline-none focus:ring focus:ring-blue-300"
+        />
+      </div>
+
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-4">
+        {filteredNature.length > 0 ? (
+          filteredNature.map((np) => (
+            <motion.div
+              key={np.id}
+              className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow hover:shadow-lg transition cursor-pointer"
+              whileHover={{ scale: 1.05 }}
+              onClick={() => fetchReviews(np.name)}
+            >
+              <img
+                src={`data:image/jpeg;base64,${np.image}`}
+                alt={np.name}
+                className="w-full h-40 object-cover rounded-md mb-4"
+              />
+              <h2 className="font-bold text-lg">{np.name}</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {np.type}
               </p>
-            </div>
-          </div>
-        ))}
+            </motion.div>
+          ))
+        ) : (
+          <p className="col-span-full text-center text-gray-500">
+            No places found.
+          </p>
+        )}
       </div>
 
       {/* Modal */}

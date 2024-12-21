@@ -9,9 +9,10 @@ from bson import Binary
 import base64
 import requests
 from datetime import datetime, timedelta
-from langchain_loader import generate_data_store
-from query_data import get_answer, delete_memory
-from werkzeug.utils import secure_filename
+import re
+# from langchain_loader import generate_data_store
+# from query_data import get_answer, delete_memory
+# from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
@@ -728,31 +729,6 @@ def download_file(filename):
         return jsonify({"error": str(e)}), 500
     
 
-GOOGLE_API_KEY = 'AIzaSyAKviKaoNilF2G3P5jdQuA4aecoe5g3WYg'
-MSRIT_COORDS = {'lat': 13.03297, 'lng': 77.56496}  # MSRIT, Bengaluru
-
-@app.route('/nearby-places', methods=['GET'])
-def get_nearby_places():
-    
-    try:
-        url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={MSRIT_COORDS['lat']},{MSRIT_COORDS['lng']}&radius=5000&type=restaurant&key={GOOGLE_API_KEY}"
-        response = requests.get(url)
-        print(response.json())
-        # Check if the response is successful
-        response.raise_for_status() 
-        # Raises an exception for 4xx/5xx HTTP status codes
-        return jsonify(response.json())  # Return the data to the frontend
-
-    except requests.exceptions.HTTPError as http_err:
-        print(f"HTTP error occurred: {http_err}")  # Print HTTP error details
-        return jsonify({'error': 'HTTP error occurred', 'details': str(http_err)}), 500
-    except requests.exceptions.RequestException as req_err:
-        print(f"Request error occurred: {req_err}")  # Print request error details
-        return jsonify({'error': 'Request error occurred', 'details': str(req_err)}), 500
-    except Exception as err:
-        print(f"Other error occurred: {err}")  # Print any other errors
-        return jsonify({'error': 'An error occurred', 'details': str(err)}), 500
-
 
 @app.route('/add_ticket', methods=['POST'])
 def add_ticket():
@@ -762,7 +738,7 @@ def add_ticket():
         eventdate = request.form.get("eventdate")  # This will be a string in 'YYYY-MM-DD' format
         price = request.form.get("price")
         tnum = request.form.get("tnum")
-        ctype = request.form.get("ctype")
+        ctype = request.form.get("ctype")  # Ensure this matches the front-end form's name attribute
         contact = request.form.get("contact")
         category = request.form.get("category")
         image = request.files["image"].read()
@@ -781,7 +757,7 @@ def add_ticket():
             "price": price,
             "image": Binary(image),  # Store image as binary
             "tnum": tnum,
-            "ctype":ctype,
+            "ctype": ctype,
             "contact": contact,
             "category": category,
             "username": username,
@@ -796,6 +772,7 @@ def add_ticket():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+
 @app.route('/tickets', methods=['GET'])
 def get_tickets():
     try:
@@ -803,13 +780,14 @@ def get_tickets():
         result = [
             {
                 "name": ticket.get("eventname"),
-                "price":ticket.get("price"),
-                "date":ticket.get("date"),
+                "price": ticket.get("price"),
+                "date": ticket.get("eventdate").strftime('%Y-%m-%d') if ticket.get("eventdate") else None,
                 "image": base64.b64encode(ticket["image"]).decode('utf-8') if "image" in ticket else None,
                 "tnum": ticket.get("tnum"),
                 "category": ticket.get("category"),
-                "ctype": ticket.get("ctype")
-            }   
+                "ctype": ticket.get("ctype"),
+                "contact": ticket.get("contact")
+            }
             for ticket in tickets
         ]
 
@@ -823,6 +801,7 @@ def get_tickets():
             "success": False,
             "error": str(e)
         }), 500
+
 
 @app.route("/rants", methods=["GET", "POST"])
 def handle_rants():
@@ -891,6 +870,47 @@ def handle_gaming(username):
     except Exception as e:
         print(e)
         return jsonify({"Error": str(e)}), 500
+    
+@app.route('/search', methods=['GET'])
+def search_places():
+    query = request.args.get('query')
+
+    if not query:
+        return jsonify({"success": False, "message": "No search query provided"}), 400
+
+    try:
+        # Create a case-insensitive regex pattern for the search query
+        regex=re.compile(re.escape(query), re.IGNORECASE)
+
+        # Query MongoDB for places that match the query (search in the 'name' field)
+        places = list(places_collection.find({"name": regex}))
+
+        if places:
+            # Prepare the response data
+            response = []
+            for place in places:
+                # Convert the image to Base64 (only if it exists)
+                if 'image' in place:
+                    encoded_image = base64.b64encode(place["image"]).decode('utf-8')
+                else:
+                    encoded_image = None
+
+                response.append({
+                    "name": place["name"],
+                    "image": encoded_image,  # Include Base64-encoded image
+                    "avg_rating": place["avg_rating"]
+                })
+
+            return jsonify({"success": True, "data": response})
+        else:
+            response=[]
+
+        return jsonify({"success": False, "message": "No places found"}), 404
+
+    except Exception as e:
+        # Log the error for debugging
+        print(f"Error fetching places: {e}")
+        return jsonify({"success": False, "message": f"Internal server error: {str(e)}"}), 500
 
     
 if __name__=="__main__":

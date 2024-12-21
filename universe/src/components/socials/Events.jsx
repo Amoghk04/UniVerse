@@ -217,23 +217,42 @@ const Events = () => {
       </div>
 
       {/* Modal for Event Details */}
-      {selectedEvent && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-            <h2 className="text-2xl font-bold mb-4">{selectedEvent.name}</h2>
-            <p><strong>Event Date:</strong> {selectedEvent?.date || "No date available"}</p>
-            <p><strong>Price Per Ticket:</strong>₹{selectedEvent.price}</p>
-            <p><strong>Tickets Available:</strong> {selectedEvent.tnum}</p>
-            <p><strong>Contact At:</strong>{selectedEvent.ctype}:{selectedEvent.contact}</p>
-            <button
-              onClick={() => setSelectedEvent(null)}
-              className="px-4 py-2 rounded-full bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-white mt-4"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
+{selectedEvent && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-96">
+      {/* Event Image */}
+      <img src={`data:image/jpeg;base64,${selectedEvent.image}`} alt={selectedEvent.name} className="w-full h-40 object-cover rounded-lg mb-4" />
+      {/* Event Details */}
+      <h2 className="text-2xl font-bold text-center mb-4">{selectedEvent.name}</h2>
+      <div className="space-y-2">
+        <p>
+          <strong className="font-semibold">Event Date:</strong>{" "}
+          {selectedEvent?.date || "No date available"}
+        </p>
+        <p>
+          <strong className="font-semibold">Price Per Ticket:</strong> ₹{selectedEvent.price}
+        </p>
+        <p>
+          <strong className="font-semibold">Tickets Available:</strong> {selectedEvent.tnum}
+        </p>
+        <p>
+          <strong className="font-semibold">Contact At:</strong>{" "}
+          {selectedEvent.ctype}: {selectedEvent.contact}
+        </p>
+      </div>
+      {/* Close Button */}
+      <div className="flex justify-center mt-4">
+        <button
+          onClick={() => setSelectedEvent(null)}
+          className="px-4 py-2 rounded-full bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-white"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
 
       {/* Modal Form */}
       {isModalOpen && (
@@ -275,7 +294,7 @@ const Events = () => {
                 className="w-full px-4 py-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white"
               />
               <select
-                name="category"
+                name="ctype"
                 value={formData.ctype}
                 onChange={handleInputChange}
                 className="w-full px-4 py-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white"

@@ -6,18 +6,23 @@ import { useNavigate } from 'react-router-dom';
 
 const Activities = () => {
   const [activities, setActivities] = useState([]);
+  const [filteredActivities, setFilteredActivities] = useState([]); // Added filteredActivities state
   const [loading, setLoading] = useState(true);
   const [selectedPlace, setSelectedPlace] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
 
-const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+  
+  // Search state
+  const [query, setQuery] = useState('');
 
   const fetchActivities = async () => {
     try {
       const response = await axios.get('http://127.0.0.1:5000/activities');
       setActivities(response.data);
+      setFilteredActivities(response.data); // Initialize filteredActivities to show all by default
     } catch (error) {
       console.error('Error fetching activities:', error);
     } finally {
@@ -47,6 +52,19 @@ const [darkMode, setDarkMode] = useState(false);
   }, []);
 
   useEffect(() => {
+    // Filter activities based on the search query
+    if (query.trim() === '') {
+      setFilteredActivities(activities); // Show all activities when query is empty
+    } else {
+      setFilteredActivities(
+        activities.filter((activity) =>
+          activity.name.toLowerCase().includes(query.toLowerCase())
+        )
+      );
+    }
+  }, [query, activities]);
+
+  useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme) {
       setDarkMode(savedTheme === 'dark');
@@ -61,12 +79,9 @@ const [darkMode, setDarkMode] = useState(false);
     document.documentElement.classList.toggle('dark', newMode);
   };
 
-
   if (loading) {
     return <div className="text-center text-white">Loading...</div>;
   }
-
-
 
   return (
     <div
@@ -101,43 +116,61 @@ const [darkMode, setDarkMode] = useState(false);
           </motion.button>
         </div>
       </header>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {activities.map((activity) => (
-          <div
-            key={activity._id}
-            onClick={() => fetchReviews(activity.name)}
-            className="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 cursor-pointer"
-          >
-            <img
-              src={`data:image/jpeg;base64,${activity.image}`}
-              alt={activity.name}
-              className="w-full h-48 object-cover"
-            />
-            <div className="p-4">
-              <h2 className="text-xl font-bold">{activity.name}</h2>
-              <p className="text-sm text-gray-400 flex items-center">
-                ⭐
-                Rating: {activity.avg_rating}
-              </p>
+
+      {/* Search Bar */}
+      <div className="flex justify-center py-6">
+        <input
+          type="text"
+          placeholder="Search for an activity..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="w-full max-w-lg p-2 border rounded-md shadow focus:outline-none focus:ring focus:ring-blue-300"
+        />
+      </div>
+
+      {/* Activities Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4">
+        {filteredActivities.length > 0 ? (
+          filteredActivities.map((activity) => (
+            <div
+              key={activity._id}
+              onClick={() => fetchReviews(activity.name)}
+              className="bg-gray-800 rounded-lg shadow-lg overflow-hidden transform hover:scale-105 transition-transform duration-300 cursor-pointer"
+            >
+              <img
+                src={`data:image/jpeg;base64,${activity.image}`}
+                alt={activity.name}
+                className="w-full h-48 object-cover"
+              />
+              <div className="p-4">
+                <h2 className="text-xl font-bold">{activity.name}</h2>
+                <p className="text-sm text-gray-400 flex items-center">
+                  ⭐
+                  Rating: {activity.avg_rating}
+                </p>
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        ) : (
+          <p className="col-span-full text-center text-gray-500">
+            No activities found.
+          </p>
+        )}
       </div>
 
       {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
           <div className="bg-white text-black rounded-lg p-6 w-3/4 max-w-lg">
-          {/* Google Maps Directions Link */}
-          <h2 className="text-2xl font-bold mb-4"> {selectedPlace}</h2>
-        <a
-          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedPlace)}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-blue-500 underline mb-4 block"
-        >
-          Get Directions to {selectedPlace}
-        </a>
+            <h2 className="text-2xl font-bold mb-4"> {selectedPlace}</h2>
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedPlace)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-500 underline mb-4 block"
+            >
+              Get Directions to {selectedPlace}
+            </a>
             <h2 className="text-2xl font-bold mb-4">Reviews</h2>
             <button
               onClick={closeModal}
