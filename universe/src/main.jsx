@@ -9,7 +9,7 @@ import ProfilePage from './components/ProfilePage';
 import EducationPage from './components/EducationPage';
 import SocialsPage from './components/SocialsPage';
 import CollegeLifePage from './components/CollegeLifePage';
-import ClubInteractionSpaces from './components/ClubInteractionSpaces'; // Added ClubInteractionSpaces
+import ClubInteractionSpaces from './components/college/ClubInteractionSpaces.jsx'; // Added ClubInteractionSpaces
 import UnifiedAuthPage from './components/UnifiedAuthPage';
 import RAGInterface from './components/education/SmartNotes';
 import QuizRoom from './components/education/Quiz/quizHome';
@@ -23,8 +23,10 @@ import Restaurants from './components/socials/hangouts/Restaurants.jsx';
 import Nature from './components/socials/hangouts/Nature.jsx';
 import GamingComms from './components/GamingComms.jsx';
 import AlumniLinkedInPage from './components/AlumniInfoGather.jsx';
+import GamingComms from './components/college/GamingComms.jsx';
 // Import styles
 import './index.css';
+import RantPage from './components/college/AnonymousRants.jsx';
 
 // Render application
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -57,6 +59,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <Route path="/college-life" element={<CollegeLifePage />} />
         <Route path="/club-interaction-spaces" element={<ClubInteractionSpaces />} />
         <Route path="/gaming-communities" element={<GamingComms />} />
+        <Route path="/rants" element={<RantPage />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>

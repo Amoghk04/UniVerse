@@ -14,7 +14,7 @@ const CollegeLifePage = () => {
       icon: HeartIcon,
       description: 'Find and connect with like-minded individuals.',
       color: 'bg-gradient-to-br from-pink-500 to-purple-600',
-      action: () => console.log('Smart Matching Platform clicked'), // Placeholder action
+      action: () => navigate('/rants'), // Placeholder action
     },
     {
       id: 'gaming',
