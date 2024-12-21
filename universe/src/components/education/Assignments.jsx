@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { SunIcon, MoonIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const Notes = () => {
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(
+    localStorage.getItem("theme") === "dark" || false
+  );
   const [showPopup, setShowPopup] = useState(false);
   const [hierarchy, setHierarchy] = useState({});
   const [newEntry, setNewEntry] = useState({
@@ -264,14 +265,6 @@ const Notes = () => {
               />
             </motion.button>
           </div>
-          <motion.button
-            onClick={toggleDarkMode}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-          >
-            {darkMode ? <SunIcon className="text-yellow-500" /> : <MoonIcon className="text-blue-600" />}
-          </motion.button>
         </div>
       </header>
 

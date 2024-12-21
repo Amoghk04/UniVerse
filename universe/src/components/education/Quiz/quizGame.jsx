@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { io } from "socket.io-client";
-import { FaSun, FaMoon } from "react-icons/fa";
 
 const QuizGame = () => {
   const [socket, setSocket] = useState(null);
@@ -13,7 +12,9 @@ const QuizGame = () => {
   const [usersAnswered, setUsersAnswered] = useState([]);
   const [usersInRoom, setUsersInRoom] = useState([]);
   const [gameOver, setGameOver] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(
+    localStorage.getItem("theme") === "dark" || false
+  );
   const roomCode = '0000'; // example room code
   localStorage.setItem('roomCode', roomCode);
 
@@ -125,13 +126,13 @@ const QuizGame = () => {
 
   return (
     <div
-      style={{
-        fontFamily: "Arial, sans-serif",
-        padding: "20px",
-        backgroundColor: darkMode ? "#121212" : "#f9f9f9",
-        color: darkMode ? "#f0f0f0" : "#000",
-        minHeight: "100vh",
-      }}
+    style={{
+      fontFamily: "Arial, sans-serif",
+      padding: "20px",
+      backgroundColor: darkMode ? "#1a202c" : "#f9f9f9", // Use the actual color code
+      color: darkMode ? "#f0f0f0" : "#000",
+      minHeight: "100vh",
+    }}    
     >
       <header
         style={{
@@ -145,18 +146,6 @@ const QuizGame = () => {
           <h1 style={{ fontSize: "2rem" }}>Quiz Game</h1>
           <h3 style={{ fontSize: "1rem" }}>Room Code: {roomCode || "0000"}</h3>
         </div>
-        <button
-          onClick={() => setDarkMode(!darkMode)}
-          style={{
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            fontSize: "24px",
-            color: darkMode ? "#f0f0f0" : "#121212",
-          }}
-        >
-          {darkMode ? <FaSun /> : <FaMoon />}
-        </button>
       </header>
 
       <div

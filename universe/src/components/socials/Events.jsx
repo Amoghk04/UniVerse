@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { SunIcon, MoonIcon, UserIcon, SparklesIcon, Heart, X, Calendar, Ticket, DollarSign, Mail  } from "lucide-react";
+import { UserIcon, SparklesIcon, Heart, X, Calendar, Ticket, DollarSign, Mail  } from "lucide-react";
 import axios from "axios";
 
 const Events = () => {
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(
+    localStorage.getItem("theme") === "dark" || false
+  );
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [events, setEvents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null); // Modal for event details
   const [imagePreview, setImagePreview] = useState(null);
-  const [interestedEvents, setInterestedEvents] = useState(new Set());
 
   const [formData, setFormData] = useState({
     eventname: "",
@@ -22,18 +23,6 @@ const Events = () => {
     image: null,
     username: localStorage.getItem("currentUsername"),
   });
-
-  const toggleInterested = (eventId) => {
-    setInterestedEvents(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(eventId)) {
-        newSet.delete(eventId);
-      } else {
-        newSet.add(eventId);
-      }
-      return newSet;
-    });
-  };
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -188,24 +177,6 @@ const Events = () => {
                 <span className="font-medium">{event.ctype}:</span> {event.contact}
               </p>
             </div>
-
-            <div className="pt-4 flex space-x-4">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => toggleInterested(event._id)}
-                className={`flex-1 py-3 px-6 rounded-lg flex items-center justify-center space-x-2 transition-colors
-                  ${interestedEvents.has(event._id)
-                    ? 'bg-red-500 text-white'
-                    : 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-2 border-red-500'
-                  }`}
-              >
-                <Heart
-                  className={`w-5 h-5 ${interestedEvents.has(event._id) ? 'fill-current' : ''}`}
-                />
-                <span>{interestedEvents.has(event._id) ? 'Interested' : 'Show Interest'}</span>
-              </motion.button>
-            </div>
           </div>
 
           <div className="pt-4">
@@ -236,14 +207,6 @@ const Events = () => {
           <h1 className="text-2xl font-bold">Events</h1>
         </div>
         <div className="flex items-center space-x-4">
-          <motion.button
-            onClick={toggleDarkMode}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-          >
-            {darkMode ? <SunIcon className="text-yellow-500" /> : <MoonIcon className="text-blue-600" />}
-          </motion.button>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}

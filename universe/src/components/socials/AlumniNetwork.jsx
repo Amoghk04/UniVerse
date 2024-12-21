@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { SunIcon, MoonIcon, UserIcon, SearchIcon, X } from "lucide-react";
+import { SearchIcon, X } from "lucide-react";
 import axios from "axios";
 
 const AlumniNetwork = () => {
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(
+    localStorage.getItem("theme") === "dark" || false
+  );
   const [searchTerm, setSearchTerm] = useState("");
   const [alumni, setAlumni] = useState([]);
   const [selectedAlumni, setSelectedAlumni] = useState(null);
@@ -71,18 +73,6 @@ const AlumniNetwork = () => {
           <h1 className="text-2xl font-bold">Alumni Network</h1>
         </div>
         <div className="flex items-center space-x-4">
-          <motion.button
-            onClick={toggleDarkMode}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="p-2 rounded-full bg-gray-100 dark:bg-gray-700"
-          >
-            {darkMode ? (
-              <SunIcon className="text-yellow-500" />
-            ) : (
-              <MoonIcon className="text-blue-600" />
-            )}
-          </motion.button>
         </div>
       </header>
 

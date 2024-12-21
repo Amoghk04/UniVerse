@@ -2,14 +2,15 @@ import React, { useState, useEffect, useCallback } from "react";
 import { io } from "socket.io-client";
 import universeLogo from "/src/assets/UniVerse.png";
 import { useNavigate } from 'react-router-dom';
-import { FaSun, FaMoon } from "react-icons/fa";
 
 const QuizRoom = () => {
   const [socket, setSocket] = useState(null);
   const [roomCode, setRoomCode] = useState("");
   const [quizTitle, setQuizTitle] = useState("");
   const [files, setUploadedFiles] = useState([]);
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(
+    localStorage.getItem("theme") === "dark" || false
+  );
   const [roomUsers, setRoomUsers] = useState([]);
   const [currentRoom, setCurrentRoom] = useState(null);
   const [username, setUsername] = useState("");
@@ -264,12 +265,6 @@ const QuizRoom = () => {
             </div>
           </div>
           <h1 className="text-2xl font-bold">Welcome to Quiz Room</h1>
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            className="p-2 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2"
-          >
-            {darkMode ? <FaSun className="text-yellow-500" /> : <FaMoon className="text-gray-700" />}
-          </button>
         </div>
       </header>
 
@@ -376,13 +371,6 @@ const QuizRoom = () => {
           </div>
         </section>
       )}
-
-      {/* Footer */}
-      <footer className={`${darkMode ? "bg-gray-800 text-gray-400" : "bg-white text-gray-500"} shadow-md py-4 mt-auto`}>
-        <div className="container mx-auto text-center text-sm">
-          © 2024 Quiz Room. All rights reserved.
-        </div>
-      </footer>
     </div>
   );
 };

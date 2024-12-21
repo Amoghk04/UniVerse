@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import universeLogo from "/src/assets/UniVerse.png"; // Replace with your logo
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { SunIcon, MoonIcon } from "lucide-react";
 import { Loader2 } from "lucide-react";
 
 const RAGInterface = () => {
@@ -203,14 +202,6 @@ const RAGInterface = () => {
             </button>
           </div>
           <div className="flex items-center space-x-4">
-            <motion.button
-              onClick={toggleDarkMode}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-            >
-              {darkMode ? <SunIcon className="text-yellow-500" /> : <MoonIcon className="text-blue-600" />}
-            </motion.button>
           </div>
         </div>
       </header>

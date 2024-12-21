@@ -2,7 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { GamepadIcon, UsersIcon, CookingPot } from 'lucide-react';
+import { GamepadIcon, UsersIcon, FileLock2 } from 'lucide-react';
 
 const CollegeLifePage = () => {
   const navigate = useNavigate();
@@ -10,9 +10,9 @@ const CollegeLifePage = () => {
   const widgets = [
     {
       id: 'ranting',
-      title: 'Anonymous Rants',
-      icon: CookingPot,
-      description: 'Rant about absolutely anything, from teachers to classmates!!!',
+      title: 'Anonymous Postings',
+      icon: FileLock2,
+      description: 'Post absolutely anything, from teachers to classmates to friends...',
       color: 'bg-gradient-to-br from-red-900 to-orange-600',
       action: () => navigate('/rants'), // Placeholder action
     },
