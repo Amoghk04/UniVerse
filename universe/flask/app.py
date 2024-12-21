@@ -7,12 +7,11 @@ from flask_cors import CORS
 from flask_socketio import SocketIO, join_room, leave_room, emit, rooms
 from bson import Binary
 import base64
-import requests
 from datetime import datetime, timedelta
 import re
-# from langchain_loader import generate_data_store
-# from query_data import get_answer, delete_memory
-# from werkzeug.utils import secure_filename
+from langchain_loader import generate_data_store
+from query_data import get_answer, delete_memory
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
@@ -836,13 +835,22 @@ def handle_rants():
             return jsonify({"message": "Rant added successfully"}), 200
 
         elif request.method == "GET":
-            # Handle fetching all rants
-            rants = list(rants_collection.find({}, {"_id": 0}))  # Exclude the MongoDB object ID
+            # Get the total number of documents in the collection
+            total_rants = rants_collection.count_documents({})
+
+            # Fetch all rants in random order using $sample with the total size
+            rants = list(rants_collection.aggregate([{"$sample": {"size": total_rants}}]))
+
+            # Remove the MongoDB object ID from each rant
+            for rant in rants:
+                rant.pop("_id", None)
+
             return jsonify(rants), 200
 
     except Exception as e:
         print(e)
         return jsonify({"error": str(e)}), 500
+
     
 @app.route("/<username>/games", methods=["POST", "GET"])
 def handle_gaming(username):
