@@ -8,10 +8,10 @@ from flask_socketio import SocketIO, join_room, leave_room, emit, rooms
 from bson import Binary
 import base64
 import requests
-from datetime import datetime
-from langchain_loader import generate_data_store
-from query_data import get_answer, delete_memory
-from werkzeug.utils import secure_filename
+# from datetime import datetime
+# from langchain_loader import generate_data_store
+# from query_data import get_answer, delete_memory
+# from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
@@ -60,6 +60,7 @@ quiz_rooms_collection = db["quiz_rooms"]
 places_collection = db["places"]
 reviews_collection = db["reviews"]
 notes_collection = db["notes"]
+tickets_collection=db['tickets']
 
 @app.route("/register", methods=["POST"])
 def register():
@@ -749,6 +750,60 @@ def get_nearby_places():
     except Exception as err:
         print(f"Other error occurred: {err}")  # Print any other errors
         return jsonify({'error': 'An error occurred', 'details': str(err)}), 500
+
+
+@app.route('/add_ticket', methods=['POST'])
+def add_ticket():
+    try:
+        # Extract form data
+        name = request.form.get("eventname")
+        tnum = request.form.get("tnum")
+        message = request.form.get("message")
+        category = request.form.get("category")
+        image = request.files["image"].read()
+        username = request.form.get("username")  # Get username from form
+
+        # Insert into MongoDB
+        tickets_collection.insert_one({
+            "eventname": name,
+            "image": Binary(image),  # Store image as binary
+            "tnum": tnum,
+            "message": message,
+            "category": category,
+            "username": username
+        })
+
+        return jsonify({"success": True, "message": f"Ticket '{name}' added."}), 201
+
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/tickets', methods=['GET'])
+def get_tickets():
+    try:
+        tickets = tickets_collection.find()
+        result = [
+            {
+                "name": ticket.get("eventname"),
+                "image": base64.b64encode(ticket["image"]).decode('utf-8') if "image" in ticket else None,
+                "tnum": ticket.get("tnum"),
+                "category": ticket.get("category"),
+                "message": ticket.get("message")
+            }   
+            for ticket in tickets
+        ]
+
+        return jsonify({
+            "success": True,
+            "data": result
+        }), 200
+
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
     
 if __name__=="__main__":
     socketio.run(app, debug=True, host="0.0.0.0", port=5000)
