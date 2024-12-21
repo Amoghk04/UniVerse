@@ -61,6 +61,8 @@ places_collection = db["places"]
 reviews_collection = db["reviews"]
 notes_collection = db["notes"]
 tickets_collection=db['tickets']
+rants_collection = db["rants"]
+games_collection = db["games"]
 
 @app.route("/register", methods=["POST"])
 def register():
@@ -82,6 +84,44 @@ def register():
     users_collection.insert_one({"name": name, "username":username, "email":email, "password": hashed_password, "usn": usn, "isAlumni": isAlumni})
 
     return jsonify({"message":"User registered successfully"}), 201
+
+@app.route("/alumni/register", methods=["POST"])
+def register_alumni():
+    data = request.json
+    name = data.get("name")
+    username = data.get('username')
+    email = data.get('email')
+    password = data.get('password')
+    year_pass_out = data.get('yearPassOut')
+    companies = data.get('companies')  # A list of companies the alumni worked at
+    skills = data.get('skills')  # A list of skills the alumni possesses
+
+    # Debugging: Print the received data for verification
+    print(username, email, password, year_pass_out, companies, skills)
+
+    # Check if all required fields are provided
+    if not username or not email or not password or not name or not year_pass_out or not companies or not skills:
+        return jsonify({"error": "All fields are required"}), 400
+    
+    # Hash the password before storing
+    hashed_password = generate_password_hash(password)
+
+    # Prepare alumni-specific data
+    alumni_data = {
+        "name": name,
+        "username": username,
+        "email": email,
+        "password": hashed_password,
+        "yearPassOut": year_pass_out,
+        "companies": companies,
+        "skills": skills
+    }
+
+    # Insert alumni data into the collection
+    users_collection.insert_one(alumni_data)
+
+    return jsonify({"message": "Alumni registered successfully"}), 201
+
 
 @app.route("/login", methods=["POST"])
 def login():
@@ -783,6 +823,74 @@ def get_tickets():
             "success": False,
             "error": str(e)
         }), 500
+
+@app.route("/rants", methods=["GET", "POST"])
+def handle_rants():
+    try:
+        if request.method == "POST":
+            # Handle adding a new rant
+            data = request.json
+            rant = data.get("rant")
+            rant_title = data.get("rantTitle")
+            
+            # Validate the input
+            if not rant or not rant_title:
+                return jsonify({"error": "Rant title and content are required"}), 400
+
+            # Record the current time
+            time = datetime.now()
+
+            # Insert the rant into the database
+            rants_collection.insert_one({
+                "title": rant_title,
+                "rant": rant,
+                "time": time
+            })
+
+            return jsonify({"message": "Rant added successfully"}), 200
+
+        elif request.method == "GET":
+            # Handle fetching all rants
+            rants = list(rants_collection.find({}, {"_id": 0}))  # Exclude the MongoDB object ID
+            return jsonify(rants), 200
+
+    except Exception as e:
+        print(e)
+        return jsonify({"error": str(e)}), 500
+    
+@app.route("/<username>/games", methods=["POST","GET"])
+def handle_gaming(username):
+    try:
+        if request.method == "POST":
+            game_name = request.json.get("gamename")
+            link = request.json.get("gamelink")
+            max_players = request.json.get("maxplayers")
+
+            if not game_name or not link or not max_players:
+                return jsonify({"Error":"Please enter all the fields"}), 400
+
+            games_collection.insert_one({
+                "game_name":game_name,
+                "game_link":link,
+                "username": username,
+                "max_players":max_players
+            })
+
+            return jsonify({"message":"Added games successfully"}), 200
+        
+        elif request.method == "GET":
+            games = list(games_collection.find({}, {"_id": 0}))
+            # Map fields to match React expectations
+            for game in games:
+                game["name"] = game.pop("game_name")
+                game["link"] = game.pop("game_link")
+                game["maxPlayers"] = game.pop("max_players")
+            return jsonify(games), 200
+
+
+    except Exception as e:
+        print(e)
+        return jsonify({"Error": str(e)}), 500
 
     
 if __name__=="__main__":
