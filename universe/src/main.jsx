@@ -13,14 +13,15 @@ import ClubInteractionSpaces from './components/ClubInteractionSpaces'; // Added
 import UnifiedAuthPage from './components/UnifiedAuthPage';
 import RAGInterface from './components/education/SmartNotes';
 import QuizRoom from './components/education/Quiz/quizHome';
+import QuizGame from './components/education/Quiz/quizGame.jsx';
 import Hangouts from './components/socials/Hangouts';
 import Events from './components/socials/Events';
 import AddHangouts from './components/socials/hangouts/AddHangouts';
 import Notes from './components/education/Assignments';
 import Activities from './components/socials/hangouts/Activities';
-import QuizGame from './components/education/Quiz/quizHome.jsx';
 import Restaurants from './components/socials/hangouts/Restaurants.jsx';
 import Nature from './components/socials/hangouts/Nature.jsx';
+import GamingComms from './components/GamingComms.jsx';
 // Import styles
 import './index.css';
 
@@ -53,6 +54,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         {/* College Life Routes */}
         <Route path="/college-life" element={<CollegeLifePage />} />
         <Route path="/club-interaction-spaces" element={<ClubInteractionSpaces />} />
+        <Route path="/gaming-communities" element={<GamingComms />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>

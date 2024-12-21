@@ -22,7 +22,7 @@ const CollegeLifePage = () => {
       icon: GamepadIcon,
       description: 'Join gaming communities and play together.',
       color: 'bg-gradient-to-br from-blue-500 to-indigo-600',
-      action: () => console.log('Gaming Communities clicked'), // Placeholder action
+      action: () => navigate('/gaming-communities'), // Navigates to GamingCommunities
     },
     {
       id: 'clubs',
