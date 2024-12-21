@@ -13,8 +13,11 @@ const Events = () => {
   const [formData, setFormData] = useState({
     eventname: "",
     tnum: "",
-    message: "",
+    contact: "",
+    ctype:"",
     category: "",
+    price:"",
+    eventdate:"",
     image: null,
     username: localStorage.getItem("currentUsername"),
   });
@@ -54,6 +57,7 @@ const Events = () => {
   };
 
   const categories = ["All", "Music", "Movies", "Stand-Up Comedy", "Theatre", "Art", "Other"];
+  const types =["Instagram", "Twitter", "Mail ID", "Phone No.", "Other"];
   const filteredEvents = selectedCategory === "All" ? events : events.filter(event => event.category === selectedCategory);
 
   const handleAddTicket = async (e) => {
@@ -62,10 +66,12 @@ const Events = () => {
     try {
       const formDataObj = new FormData();
       formDataObj.append("eventname", formData.eventname);
+      formDataObj.append("eventdate", formData.eventdate);
+      formDataObj.append("price", formData.price);
+      formDataObj.append("contact", formData.contact);
+      formDataObj.append("ctype",formData.ctype)
       formDataObj.append("tnum", formData.tnum);
-      formDataObj.append("message", formData.message);
       formDataObj.append("category", formData.category);
-      formDataObj.append("image", formData.image);
       formDataObj.append("username",formData.username);
       if (formData.image) {
         formDataObj.append("image", formData.image);
@@ -215,9 +221,10 @@ const Events = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
             <h2 className="text-2xl font-bold mb-4">{selectedEvent.name}</h2>
-            <p><strong>Category:</strong> {selectedEvent.category}</p>
+            <p><strong>Event Date:</strong> {selectedEvent?.date || "No date available"}</p>
+            <p><strong>Price Per Ticket:</strong>₹{selectedEvent.price}</p>
             <p><strong>Tickets Available:</strong> {selectedEvent.tnum}</p>
-            <p><strong>Message:</strong> {selectedEvent.message}</p>
+            <p><strong>Contact At:</strong>{selectedEvent.ctype}:{selectedEvent.contact}</p>
             <button
               onClick={() => setSelectedEvent(null)}
               className="px-4 py-2 rounded-full bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-white mt-4"
@@ -231,6 +238,7 @@ const Events = () => {
       {/* Modal Form */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+  <div className="w-1/3 max-h-full overflow-auto bg-white p-2 rounded-lg">
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
             <h2 className="text-2xl font-bold mb-4">Add Ticket</h2>
             <form onSubmit={handleAddTicket} className="space-y-4">
@@ -243,6 +251,14 @@ const Events = () => {
                 className="w-full px-4 py-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white"
               />
               <input
+                type="date"
+                name="eventdate"
+                placeholder="Event Date"
+                value={formData.eventdate}
+                onChange={handleInputChange}
+                className="w-full px-4 py-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
+              <input
                 type="number"
                 name="tnum"
                 placeholder="Number of Tickets"
@@ -250,10 +266,31 @@ const Events = () => {
                 onChange={handleInputChange}
                 className="w-full px-4 py-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white"
               />
+              <input
+                type="number"
+                name="price"
+                placeholder="Price per ticket"
+                value={formData.price}
+                onChange={handleInputChange}
+                className="w-full px-4 py-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
+              <select
+                name="category"
+                value={formData.ctype}
+                onChange={handleInputChange}
+                className="w-full px-4 py-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white"
+              >
+                <option value="">Contact Mode</option>
+                {types.map((ctype) => (
+                  <option key={ctype} value={ctype}>
+                    {ctype}
+                  </option>
+                ))}
+              </select>
               <textarea
-                name="message"
-                placeholder="Message/Contact Details"
-                value={formData.message}
+                name="contact"
+                placeholder="Contact Details (add link for other)"
+                value={formData.contact}
                 onChange={handleInputChange}
                 className="w-full px-4 py-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white"
               ></textarea>
@@ -297,6 +334,7 @@ const Events = () => {
               </div>
             </form>
           </div>
+        </div>
         </div>
       )}
     </div>

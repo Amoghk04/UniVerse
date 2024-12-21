@@ -8,7 +8,7 @@ from flask_socketio import SocketIO, join_room, leave_room, emit, rooms
 from bson import Binary
 import base64
 import requests
-# from datetime import datetime
+from datetime import datetime, timedelta
 # from langchain_loader import generate_data_store
 # from query_data import get_answer, delete_memory
 # from werkzeug.utils import secure_filename
@@ -719,21 +719,37 @@ def add_ticket():
     try:
         # Extract form data
         name = request.form.get("eventname")
+        eventdate = request.form.get("eventdate")  # This will be a string in 'YYYY-MM-DD' format
+        price = request.form.get("price")
         tnum = request.form.get("tnum")
-        message = request.form.get("message")
+        ctype = request.form.get("ctype")
+        contact = request.form.get("contact")
         category = request.form.get("category")
         image = request.files["image"].read()
         username = request.form.get("username")  # Get username from form
 
+        # Convert the eventdate string (YYYY-MM-DD) to a datetime object
+        event_date = datetime.strptime(eventdate, "%Y-%m-%d")  # Convert string to datetime
+
+        # Calculate expiration time (24 hours after event date)
+        expires_at = event_date + timedelta(hours=24)
+
         # Insert into MongoDB
         tickets_collection.insert_one({
             "eventname": name,
+            "eventdate": event_date,
+            "price": price,
             "image": Binary(image),  # Store image as binary
             "tnum": tnum,
-            "message": message,
+            "ctype":ctype,
+            "contact": contact,
             "category": category,
-            "username": username
+            "username": username,
+            "expiresAt": expires_at  # Add expiresAt field
         })
+
+        # Create the TTL index on the 'expiresAt' field to expire documents 24 hours after the event date
+        tickets_collection.create_index([("expiresAt", 1)], expireAfterSeconds=0)
 
         return jsonify({"success": True, "message": f"Ticket '{name}' added."}), 201
 
@@ -747,10 +763,12 @@ def get_tickets():
         result = [
             {
                 "name": ticket.get("eventname"),
+                "price":ticket.get("price"),
+                "date":ticket.get("date"),
                 "image": base64.b64encode(ticket["image"]).decode('utf-8') if "image" in ticket else None,
                 "tnum": ticket.get("tnum"),
                 "category": ticket.get("category"),
-                "message": ticket.get("message")
+                "ctype": ticket.get("ctype")
             }   
             for ticket in tickets
         ]
