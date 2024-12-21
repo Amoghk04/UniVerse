@@ -2,18 +2,18 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { HeartIcon, GamepadIcon, UsersIcon } from 'lucide-react';
+import { GamepadIcon, UsersIcon, CookingPot } from 'lucide-react';
 
 const CollegeLifePage = () => {
   const navigate = useNavigate();
 
   const widgets = [
     {
-      id: 'dating',
-      title: 'Smart Matching Platform',
-      icon: HeartIcon,
-      description: 'Find and connect with like-minded individuals.',
-      color: 'bg-gradient-to-br from-pink-500 to-purple-600',
+      id: 'ranting',
+      title: 'Anonymous Rants',
+      icon: CookingPot,
+      description: 'Rant about absolutely anything, from teachers to classmates!!!',
+      color: 'bg-gradient-to-br from-red-900 to-orange-600',
       action: () => navigate('/rants'), // Placeholder action
     },
     {
