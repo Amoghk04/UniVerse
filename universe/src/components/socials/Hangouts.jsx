@@ -143,37 +143,104 @@ const Hangouts = () => {
   return (
     <div className={`min-h-screen transition-all duration-500 ${darkMode ? 'dark bg-gray-900 text-white' : 'bg-white text-gray-900'} overflow-x-hidden`}>
       <header className="bg-white dark:bg-gray-800 shadow-md py-4 flex items-center justify-between px-4 w-full">
-        <button onClick={() => window.history.back()} className="px-3 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition">
-          Back
-        </button>
+        
         <div className="flex-1 flex justify-center">
-          <h1 className="text-2xl font-bold">&nbsp;&nbsp;&nbsp;Hangouts Near You</h1>
+          <h1 className="text-4xl font-extrabold text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-green-600">Hangouts</h1>
         </div>
         <div className="flex items-center space-x-4">
-          <motion.button onClick={() => navigate('/profile')} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-            <UserIcon className="text-gray-800 dark:text-gray-200" />
-          </motion.button>
+         
         </div>
       </header>
   
       <main className="container mx-auto px-4 py-12 flex flex-col gap-6">
-        <motion.h2 initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="text-4xl font-extrabold text-center mb-12 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
-          Top Rated Hangouts
-        </motion.h2>
+        
 
-        {/* Carousel Component */}
-        <Slider>
-          {topRatedPlaces.map((place) => (
-            <motion.div key={place.name} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg flex flex-col justify-between items-center max-w-3xl mx-auto" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }}>
-              <img src={`data:image/jpeg;base64,${place.image}`} alt={place.name} className="w-full h-64 object-cover rounded-lg mb-4" />
-              <h4 className="text-xl font-semibold text-center text-white dark:text-gray-100 mb-2">{place.name}</h4>
-              <div className="flex items-center space-x-2 mt-2 justify-center">
-                <StarIcon className="text-yellow-500" size={20} />
-                <span className="text-white dark:text-gray-100">{place.avg_rating}</span>
-              </div>
-            </motion.div>
-          ))}
-        </Slider>
+        {/* Top Rated Section with Carousel */}
+        <div className="w-full">
+          <motion.h2
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-4xl font-extrabold text-center mb-12 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600"
+          >
+            Top Rated Hangouts
+          </motion.h2>
+  
+          <div className="relative w-full px-4 py-8">
+            <div className="flex justify-between items-center mb-6">
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={prevSlide}
+                className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </motion.button>
+              
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={nextSlide}
+                className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </motion.button>
+            </div>
+  
+            <div className="relative overflow-hidden">
+              <motion.div 
+                className="flex gap-4"
+                initial={false}
+              >
+                <AnimatePresence mode="wait">
+                  {visiblePlaces.map((place, index) => (
+                    <motion.div
+                      key={`${place.name}-${index}`}
+                      className={`flex-1 min-w-0 ${displayCount === 1 ? 'w-full' : displayCount === 2 ? 'w-1/2' : 'w-1/3'}`}
+                      initial={{ opacity: 0, x: 50 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -50 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden h-full">
+                        <div className="relative h-48 sm:h-64 md:h-72 lg:h-80">
+                          <img
+                            src={`data:image/jpeg;base64,${place.image}`}
+                            alt={place.name}
+                            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                          />
+                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                            <h3 className="text-white text-xl font-bold truncate">
+                              {place.name}
+                            </h3>
+                            <div className="flex items-center space-x-2 mt-2">
+                              <StarIcon className="text-yellow-400 w-5 h-5" />
+                              <span className="text-white">{place.avg_rating}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </motion.div>
+            </div>
+  
+            <div className="flex justify-center mt-4 gap-2">
+              {Array.from({ length: Math.ceil(places.length / displayCount) }).map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentIndex(idx * displayCount)}
+                  className={`w-2 h-2 rounded-full transition-colors ${
+                    Math.floor(currentIndex / displayCount) === idx 
+                      ? 'bg-blue-500' 
+                      : 'bg-gray-300 dark:bg-gray-600'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
 
         <motion.h2
           initial={{ opacity: 0, y: -20 }}
@@ -225,7 +292,7 @@ const Hangouts = () => {
             placeholder="Search for a place..."
             className="w-full p-3 pl-10 rounded-lg shadow-md border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 max-w-lg"
           />
-          <SearchIcon size={24} className="absolute top-3 left-3 text-gray-500" />
+          
 
           {/* Category Icons */}
           <div className="flex space-x-4 ml-4">

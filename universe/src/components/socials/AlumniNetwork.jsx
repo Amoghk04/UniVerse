@@ -68,12 +68,12 @@ const AlumniNetwork = () => {
       darkMode ? "dark bg-gray-900 text-white" : "bg-white text-gray-900"
     } overflow-y-auto`}>
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-white dark:bg-gray-800 shadow-md py-4 flex items-center justify-between px-4">
+      <header className="bg-white dark:bg-gray-800 shadow-md py-4 flex items-center justify-between px-4 w-full">
+        
         <div className="flex-1 flex justify-center">
-          <h1 className="text-2xl font-bold">Alumni Network</h1>
+          <h1 className="text-4xl font-extrabold text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-green-600">Alumni Network</h1>
         </div>
-        <div className="flex items-center space-x-4">
-        </div>
+        
       </header>
 
       {/* Search Section */}
@@ -149,68 +149,46 @@ const AlumniNetwork = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center 
-                     justify-center p-4 z-50"
+            className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center p-4 z-50"
             onClick={() => setSelectedAlumni(null)}
           >
             <motion.div
-              initial={{ scale: 0.95 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.95 }}
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 
-                       max-w-md w-full"
+              className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl overflow-hidden max-w-4xl w-full flex flex-col md:flex-row"
             >
-              <div className="flex justify-between items-start mb-4">
-                <h2 className="text-2xl font-bold">{selectedAlumni.name}</h2>
-                <button
-                  onClick={() => setSelectedAlumni(null)}
-                  className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+              {/* Left side - Image or Placeholder */}
+              <div className="md:w-1/2 p-6 flex items-center justify-center bg-gray-200 dark:bg-gray-700">
+                <div className="text-center text-gray-500 dark:text-gray-300">
+                  <span className="text-lg">No Image</span>
+                </div>
               </div>
-              
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-semibold mb-1">Companies:</h3>
-                  {selectedAlumni.companies && selectedAlumni.companies.length > 0 ? (
-                    <ul className="list-disc list-inside">
-                      {selectedAlumni.companies.map((company, index) => (
-                        <li key={index} className="text-gray-600 dark:text-gray-300">
-                          {company}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-gray-500">No companies listed</p>
-                  )}
+
+              {/* Right side - Alumni Details */}
+              <div className="md:w-1/2 p-6 space-y-6">
+                <div className="space-y-4">
+                  <h2 className="text-3xl font-bold">{selectedAlumni.name}</h2>
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      <strong>Email:</strong> {selectedAlumni.email}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      <strong>Companies:</strong> {selectedAlumni.companies?.join(", ") || "No companies listed"}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      <strong>Skills:</strong> {selectedAlumni.skills?.join(", ") || "No skills listed"}
+                    </p>
+                  </div>
                 </div>
-                
-                <div>
-                  <h3 className="font-semibold mb-1">Skills:</h3>
-                  {selectedAlumni.skills && selectedAlumni.skills.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {selectedAlumni.skills.map((skill, index) => (
-                        <span
-                          key={index}
-                          className="px-2 py-1 bg-gray-100 dark:bg-gray-700 
-                                   rounded-full text-sm"
-                        >
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500">No skills listed</p>
-                  )}
-                </div>
-                
-                <div>
-                  <h3 className="font-semibold mb-1">Email:</h3>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    {selectedAlumni.email || 'Email not available'}
-                  </p>
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => setSelectedAlumni(null)}
+                    className="px-4 py-2 rounded-full bg-blue-600 text-white dark:bg-blue-700"
+                  >
+                    Close
+                  </button>
                 </div>
               </div>
             </motion.div>
