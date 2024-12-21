@@ -27,7 +27,7 @@ const Events = () => {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const response = await axios.get("http://127.0.0.1:5000/tickets");
+        const response = await axios.get("http://20.197.34.29:5000/tickets");
         console.log(response.data);
         if (response.data.success) {
           setEvents(response.data.data);
@@ -80,7 +80,7 @@ const Events = () => {
         formDataObj.append("image", formData.image);
       }
 
-      const response = await axios.post("http://127.0.0.1:5000/add_ticket", formDataObj, {
+      const response = await axios.post("http://20.197.34.29:5000/add_ticket", formDataObj, {
         
       });
 
