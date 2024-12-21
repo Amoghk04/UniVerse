@@ -23,6 +23,7 @@ import Restaurants from './components/socials/hangouts/Restaurants.jsx';
 import Nature from './components/socials/hangouts/Nature.jsx';
 import AlumniLinkedInPage from './components/AlumniInfoGather.jsx';
 import GamingComms from './components/college/GamingComms.jsx';
+import AlumniNetwork from './components/socials/AlumniNetwork.jsx';
 // Import styles
 import './index.css';
 import RantPage from './components/college/AnonymousRants.jsx';
@@ -49,6 +50,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <Route path="/socials" element={<SocialsPage />} />
         <Route path="/socials/hangouts" element={<Hangouts />} />
         <Route path="/socials/events" element={<Events />} />
+        <Route path="/socials/alumni" element={<AlumniNetwork />} />
         <Route path="/socials/hangouts/add" element={<AddHangouts />} />
         <Route path="/socials/hangouts/activities" element={<Activities />} />
         <Route path="/socials/hangouts/foodies" element={<Restaurants />} />

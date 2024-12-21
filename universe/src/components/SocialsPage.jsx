@@ -13,7 +13,7 @@ const SocialsPage = () => {
       icon: UsersIcon,
       description: 'Connect with alumni to expand your network.',
       color: 'bg-gradient-to-br from-green-500 to-teal-600',
-      nav:'#socials/alumni'
+      nav:'/socials/alumni'
     },
     {
       id: 'hangouts',

@@ -93,11 +93,17 @@ def register_alumni():
     email = data.get('email')
     password = data.get('password')
     year_pass_out = data.get('yearPassOut')
+    isAlumni = data.get('isAlumni')
     companies = data.get('companies')  # A list of companies the alumni worked at
     skills = data.get('skills')  # A list of skills the alumni possesses
 
     # Debugging: Print the received data for verification
     print(username, email, password, year_pass_out, companies, skills)
+
+    if(isAlumni == 'true'):
+        isAlumni = True
+    else:
+        isAlumni = False
 
     # Check if all required fields are provided
     if not username or not email or not password or not name or not year_pass_out or not companies or not skills:
@@ -112,6 +118,7 @@ def register_alumni():
         "username": username,
         "email": email,
         "password": hashed_password,
+        "isAlumni": isAlumni,
         "yearPassOut": year_pass_out,
         "companies": companies,
         "skills": skills
@@ -873,6 +880,62 @@ def handle_gaming(username):
     except Exception as e:
         print(e)
         return jsonify({"Error": str(e)}), 500
+
+
+from flask import jsonify, request
+
+@app.route('/alumniFetchAll', methods=['GET'])
+def get_alumni():
+    try:
+        search_keywords = request.args.get('search', '').strip()
+        
+        if not search_keywords:
+            # Base query ensuring isAlumni is true and companies field exists
+            query = {
+                'isAlumni': True,
+                'companies': {'$exists': True}
+            }
+        else:
+            # Query with search and ensuring companies field exists
+            query = {
+                'isAlumni': True,
+                'companies': {'$exists': True},
+                '$or': [
+                    {'name': {'$regex': f'.*{search_keywords}.*', '$options': 'i'}},
+                    {'skills': {'$regex': f'.*{search_keywords}.*', '$options': 'i'}},
+                    {'companies': {'$regex': f'.*{search_keywords}.*', '$options': 'i'}}
+                ]
+            }
+
+        # Project only the specified fields
+        projection = {
+            'name': 1,
+            'email': 1,
+            'yearPassout': 1,
+            'companies': 1,
+            'skills': 1,
+            '_id': 0
+        }
+
+        # Perform the query and convert cursor to list
+        alumni_list = list(users_collection.find(query, projection))
+        
+        # Process the results to ensure all fields exist
+        processed_alumni = []
+        for alumnus in alumni_list:
+            processed_alumni.append({
+                'name': str(alumnus.get('name', '')),
+                'email': str(alumnus.get('email', '')),
+                'yearPassout': str(alumnus.get('yearPassout', '')),
+                'companies': list(alumnus.get('companies', [])),
+                'skills': list(alumnus.get('skills', []))
+            })
+
+        return jsonify(processed_alumni), 200
+
+    except Exception as e:
+        print(f"Error in get_alumni: {str(e)}")  # Log the error
+        return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
 
     
 if __name__=="__main__":
