@@ -9,9 +9,9 @@ from bson import Binary
 import base64
 from datetime import datetime, timedelta
 import re
-from langchain_loader import generate_data_store
-from query_data import get_answer, delete_memory
-from werkzeug.utils import secure_filename
+# from langchain_loader import generate_data_store
+# from query_data import get_answer, delete_memory
+# from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
