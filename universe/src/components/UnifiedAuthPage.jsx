@@ -50,7 +50,7 @@ const UnifiedAuthPage = () => {
     } else if (currentForm === 'register') {
       url = 'http://20.197.34.29:5000/register';
     } else if (currentForm === 'forgotPassword') {
-      url = 'http://20.197.34.29/:5000/forgot_password';
+      url = 'http://20.197.34.29:5000/forgot_password';
     }
   
     try {
