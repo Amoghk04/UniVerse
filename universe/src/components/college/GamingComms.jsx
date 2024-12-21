@@ -19,34 +19,81 @@ const GamingComms = () => {
   useEffect(() => {
     axios
       .get(`${url}/${username}/games`)
-      .then((response) => setGames(response.data))
+      .then((response) => {
+        console.log("Received games data:", response.data);
+        setGames(response.data);
+      })
       .catch((error) => console.error('Error fetching games:', error));
   }, []);
 
-  const addGame = () => {
-    axios
-      .post(`${url}/${username}/games`, {
-        gamename: newGame.name,
-        gamelink: newGame.link,
-        username: username,
-        maxplayers: newGame.maxPlayers,
-      }, {
-        headers: {
-          'Content-Type': 'application/json'
+  const addGame = async () => {
+    try {
+      // Validate game data
+      if (!newGame.name || !newGame.link || !newGame.maxPlayers) {
+        alert('Please fill in all game details');
+        return;
+      }
+  
+      // First add the game - Modified to match backend field names
+      const gameResponse = await axios.post(
+        `${url}/${username}/games`,
+        {
+          gamename: newGame.name,    // This stays the same as it matches the backend
+          gamelink: newGame.link,    // This stays the same as it matches the backend
+          username: username,        // This stays the same
+          maxplayers: newGame.maxPlayers  // This stays the same
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
         }
-      })
-      .then((response) => {
-        setGames([...games, response.data]);
-        setNewGame({ name: '', link: '', username: username, maxPlayers: '' });
-        setIsModalOpen(false);
-      })
-      .catch((error) => console.error('Error adding game:', error));
-  };  
-
+      );
+  
+      // Log the response to see what we get back
+      console.log("Game Response:", gameResponse.data);
+  
+      // Update games state with the new mapped fields
+      const newGameData = {
+        name: newGame.name,
+        link: newGame.link,
+        username: username,
+        maxPlayers: newGame.maxPlayers
+      };
+      setGames([...games, newGameData]);
+      
+      // Send notifications with the correct field names
+      const emailResponse = await axios.post(
+        `${url}/send_bulk_email`,
+        {
+          gamename: newGame.name,
+          username: username,
+          maxplayers: newGame.maxPlayers,
+          gamelink: newGame.link
+        }
+      );
+  
+      if (emailResponse.data.status === 'success') {
+        alert('Game added and notifications sent!');
+      } else {
+        alert('Game added but there was an issue sending notifications');
+      }
+      
+      // Reset form and close modal
+      setNewGame({ name: '', link: '', username: username, maxPlayers: '' });
+      setIsModalOpen(false);
+  
+    } catch (error) {
+      console.error('Error in game creation process:', error);
+      alert('Failed to create game');
+    }
+  };
+  
+  // Update the filter function to use the correct field names
   const filteredGames = games.filter(
     (game) =>
-      game.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      game.username.toLowerCase().includes(searchTerm.toLowerCase())
+      game?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      game?.username?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (

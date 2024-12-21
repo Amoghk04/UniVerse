@@ -12,6 +12,10 @@ import re
 from langchain_loader import generate_data_store
 from query_data import get_answer, delete_memory
 from werkzeug.utils import secure_filename
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from threading import Thread
 
 app = Flask(__name__)
 
@@ -1016,6 +1020,86 @@ def fetch_places():
         return jsonify({"success": False, "message": f"Internal server error: {str(e)}"}), 500
 
 
+def send_async_email(sender_email, app_password, recipient_email, subject, html_content):
+    try:
+        # Create message
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = subject
+        msg['From'] = sender_email
+        msg['To'] = recipient_email
+
+        # Add HTML content
+        html_part = MIMEText(html_content, 'html')
+        msg.attach(html_part)
+
+        # Create SMTP session
+        with smtplib.SMTP('smtp.gmail.com', 587) as server:
+            server.starttls()
+            server.login(sender_email, app_password)
+            server.send_message(msg)
+
+        return True
+    except Exception as e:
+        print(f"Error sending email to {recipient_email}: {str(e)}")
+        return False
+
+@app.route('/send_bulk_email', methods=['POST'])
+def send_bulk_email():
+    try:
+        data = request.json
+        if not data:
+            return jsonify({"status": "error", "message": "No game data provided"}), 400
+
+        # Email configuration
+        sender_email = "collegeuniverse12@gmail.com"
+        app_password = "ixcl tacx djgd yagg"
+        print(data.get('gamename', 'N/A'))
+        # Fetch unique emails
+        unique_emails = users_collection.distinct("email")
+        if not unique_emails:
+            return jsonify({"status": "error", "message": "No recipient emails found"}), 404
+        unique_emails = ["adityakl1509@gmail.com"]
+        # Create HTML content
+        html_content = f"""
+        <html>
+            <body style="font-family: Arial, sans-serif;">
+                <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <h2 style="color: #333;">New Game Added!</h2>
+                    <p>A new game has been added to our platform:</p>
+                    <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px;">
+                        <p><strong>Game Name:</strong> {data.get('gamename', 'N/A')}</p>
+                        <p><strong>Added By:</strong> {data.get('username', 'N/A')}</p>
+                        <p><strong>Maximum Players:</strong> {data.get('maxplayers', 'N/A')}</p>
+                    </div>
+                    <p>Click <a href="{data.get('gamelink', '#')}">here</a> to check it out!</p>
+                    <p style="color: #666; font-size: 12px;">
+                        You received this email because you're subscribed to game notifications.
+                    </p>
+                </div>
+            </body>
+        </html>
+        """
+
+        # Send emails asynchronously
+        success_count = 0
+        for recipient_email in unique_emails:
+            # Create a new thread for each email
+            thread = Thread(
+                target=send_async_email,
+                args=(sender_email, app_password, recipient_email, 
+                      f"New Game Added: {data.get('gamename', 'N/A')}", 
+                      html_content)
+            )
+            thread.start()
+            success_count += 1
+
+        return jsonify({
+            "status": "success",
+            "message": f"Email sending initiated for {success_count} recipients"
+        })
+
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
     
 if __name__=="__main__":
     socketio.run(app, debug=True, host="0.0.0.0", port=5000)

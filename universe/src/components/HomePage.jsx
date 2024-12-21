@@ -65,15 +65,6 @@ const HomePage = () => {
       description: "Dynamic platform for campus experiences",
       color: "bg-gradient-to-br from-pink-500 to-purple-600",
     },
-    {
-      id: "insights",
-      title: "Insights",
-      icon: HeartIcon,
-      description: "Discover and validate the best academic and professional resources",
-      color: "bg-gradient-to-br from-yellow-500 to-orange-600",
-      external: true, // Custom flag to indicate external link
-      url: "https://insights.surf/", // External URL
-    },
   ];
 
   // Load theme and sample posts on first mount

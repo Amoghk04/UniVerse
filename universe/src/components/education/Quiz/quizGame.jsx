@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { io } from "socket.io-client";
+import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 const QuizGame = () => {
   const [socket, setSocket] = useState(null);
@@ -17,6 +19,7 @@ const QuizGame = () => {
   );
   const roomCode = '0000'; // example room code
   localStorage.setItem('roomCode', roomCode);
+  const navigate = useNavigate();
 
   const questions = [
     {
@@ -99,18 +102,28 @@ const QuizGame = () => {
     }
   };
 
+  const handleBackToLobby = () => {
+    navigate('/education/quiz');
+  };
+  
+  const handleQuitRoom = () => {
+    navigate('/education');
+  };
+
   const handleEndQuestion = () => {
     setShowResults(true);
     const currentQuestion = questions[currentQuestionIndex];
-
-    const correctResponses = responses.filter(
-      (response) => response.answer === currentQuestion.answer
-    );
-
-    if (selectedOption === currentQuestion.answer) {
+  
+    // Add null check for responses
+    const correctResponses = responses?.filter(
+      (response) => response?.answer === currentQuestion?.answer
+    ) || [];
+  
+    // Add null check for selectedOption
+    if (selectedOption && currentQuestion && selectedOption === currentQuestion.answer) {
       setScore((prev) => prev + 1);
     }
-
+  
     setTimeout(() => {
       if (currentQuestionIndex < questions.length - 1) {
         setCurrentQuestionIndex((prev) => prev + 1);
@@ -121,7 +134,7 @@ const QuizGame = () => {
       } else {
         setGameOver(true);
       }
-    }, 5000); // Wait 5 seconds before moving to the next question
+    }, 5000);
   };
 
   return (
@@ -137,17 +150,21 @@ const QuizGame = () => {
       <header
         style={{
           display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
+          justifyContent: "center",  // Center horizontally
+          alignItems: "flex-start",   // Align to the top
           padding: "20px 40px",
         }}
       >
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
-          <h1 style={{ fontSize: "2rem" }}>Quiz Game</h1>
-          <h3 style={{ fontSize: "1rem" }}>Room Code: {roomCode || "0000"}</h3>
+        <div>
+          <h1 style={{
+            fontSize: "3rem",
+            fontWeight: "bold",
+            textAlign: "center",       // Center text inside the heading
+          }}>
+            Welcome to the Quiz
+          </h1>
         </div>
       </header>
-
       <div
         style={{
           display: "flex",
@@ -159,11 +176,37 @@ const QuizGame = () => {
         }}
       >
         {gameOver ? (
-          <div>
-            <h2>Game Over!</h2>
-            <p>Your score: {score} / {questions.length}</p>
-          </div>
-        ) : (
+  <div className="flex flex-col items-center justify-center">
+    <div className="text-center mb-8">
+      <h2 className="text-4xl font-bold mb-4">
+        Game Over!
+      </h2>
+      <p className="text-2xl font-semibold mb-8">
+        Your score: {score} / {questions.length}
+      </p>
+    </div>
+    
+    <div className="flex gap-4">
+      <motion.button
+        onClick={handleBackToLobby}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        className="px-6 py-3 text-lg font-semibold text-white bg-green-500 hover:bg-green-600 rounded-lg transition-colors"
+      >
+        Back to Lobby
+      </motion.button>
+
+      <motion.button
+        onClick={handleQuitRoom}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        className="px-6 py-3 text-lg font-semibold text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors"
+      >
+        Quit Room
+      </motion.button>
+    </div>
+  </div>
+): (
           <div>
             <h2 style={{ fontSize: "2.5rem" }}>{questions[currentQuestionIndex].question}</h2>
             <div style={{ marginTop: "30px" }}>
@@ -200,11 +243,7 @@ const QuizGame = () => {
               ))}
             </div>
             <h3 style={{ marginTop: "20px", fontSize: "1.5rem" }}>Time Left: {timer} seconds</h3>
-            {showResults && (
-              <div style={{ marginTop: "20px" }}>
-                {/* Show correct/incorrect answers logic can be added here */}
-              </div>
-            )}
+            {showResults}
           </div>
         )}
       </div>
