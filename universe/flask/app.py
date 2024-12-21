@@ -82,6 +82,44 @@ def register():
 
     return jsonify({"message":"User registered successfully"}), 201
 
+@app.route("/alumni/register", methods=["POST"])
+def register_alumni():
+    data = request.json
+    name = data.get("name")
+    username = data.get('username')
+    email = data.get('email')
+    password = data.get('password')
+    year_pass_out = data.get('yearPassOut')
+    companies = data.get('companies')  # A list of companies the alumni worked at
+    skills = data.get('skills')  # A list of skills the alumni possesses
+
+    # Debugging: Print the received data for verification
+    print(username, email, password, year_pass_out, companies, skills)
+
+    # Check if all required fields are provided
+    if not username or not email or not password or not name or not year_pass_out or not companies or not skills:
+        return jsonify({"error": "All fields are required"}), 400
+    
+    # Hash the password before storing
+    hashed_password = generate_password_hash(password)
+
+    # Prepare alumni-specific data
+    alumni_data = {
+        "name": name,
+        "username": username,
+        "email": email,
+        "password": hashed_password,
+        "yearPassOut": year_pass_out,
+        "companies": companies,
+        "skills": skills
+    }
+    
+    # Insert alumni data into the collection
+    users_collection.insert_one(alumni_data)
+
+    return jsonify({"message": "Alumni registered successfully"}), 201
+
+
 @app.route("/login", methods=["POST"])
 def login():
     data = request.json
