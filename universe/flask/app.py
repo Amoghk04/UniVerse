@@ -32,6 +32,23 @@ CORS(app, supports_credentials=True)
 
 load_dotenv()
 
+questions = [
+    {
+        "question": "What is the capital of France?",
+        "options": ["Paris", "London", "Berlin", "Madrid"],
+        "answer": "Paris",
+    },
+    {
+        "question": "What is 2 + 2?",
+        "options": ["3", "4", "5", "6"],
+        "answer": "4",
+    },
+    {
+        "question": "Which programming language is known as 'Python'?",
+        "options": ["Java", "C++", "Python", "Ruby"],
+        "answer": "Python",
+    },
+]
 # Configure SocketIO with additional settings
 socketio = SocketIO(
     app,
@@ -1331,6 +1348,10 @@ def quiz_upload(username):
         return jsonify({"message": "Files uploaded successfully", "files": uploaded_files}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/api/questions', methods=['GET'])
+def get_questions():
+    return jsonify(questions)
 
 
 @app.route('/blacklisted-words', methods=['GET'])
