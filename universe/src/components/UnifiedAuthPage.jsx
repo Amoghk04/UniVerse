@@ -6,7 +6,6 @@ import RegisterForm from './auth/RegisterForm';
 import ForgotPasswordForm from './auth/ForgotPasswordForm';
 import { validateForm } from '../utils/formValidation';
 import { fadeIn } from '../utils/animations';
-import { use } from 'react';
 
 const UnifiedAuthPage = () => {
   const [currentForm, setCurrentForm] = useState('login');
@@ -19,6 +18,8 @@ const UnifiedAuthPage = () => {
     confirmPassword: '',
     usn: '',
     isAlumni: false,
+    profileImage: null,
+    profileImagePreview: null,
   });
   const [verificationError, setVerificationError] = useState('');
   const [darkMode, setDarkMode] = useState(
@@ -27,11 +28,25 @@ const UnifiedAuthPage = () => {
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: type === 'checkbox' ? checked : value
-    });
+    const { name, value, type, checked, files } = e.target;
+    
+    if (type === 'file') {
+      const file = files[0];
+      if (file) {
+        // Create preview URL for image
+        const previewUrl = URL.createObjectURL(file);
+        setFormData({
+          ...formData,
+          profileImage: file,
+          profileImagePreview: previewUrl
+        });
+      }
+    } else {
+      setFormData({
+        ...formData,
+        [name]: type === 'checkbox' ? checked : value
+      });
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -54,13 +69,36 @@ const UnifiedAuthPage = () => {
     }
   
     try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+      let response;
+      
+      if (currentForm === 'login') {
+        // For login, send JSON data
+        response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            username: formData.username,
+            password: formData.password,
+          }),
+        });
+      } else {
+        // For register and forgot password, send FormData
+        const submitData = new FormData();
+        Object.keys(formData).forEach(key => {
+          if (key === 'profileImage' && formData[key]) {
+            submitData.append('profileImage', formData[key]);
+          } else if (key !== 'profileImagePreview') {
+            submitData.append(key, formData[key]);
+          }
+        });
+  
+        response = await fetch(url, {
+          method: 'POST',
+          body: submitData,
+        });
+      }
   
       const result = await response.json();
   
@@ -73,9 +111,8 @@ const UnifiedAuthPage = () => {
           localStorage.setItem('currentName', formData.name);
           localStorage.setItem('currentPassword', formData.password);
           localStorage.setItem('currentIsAlumni', formData.isAlumni);
-          navigate('/alumni-linkedin'); // Redirect to alumni-specific page
+          navigate('/alumni-linkedin');
         } else if (currentForm === 'login') {
-          // Store the username in local storage
           localStorage.setItem('currentUsername', formData.username);
           navigate('/home');
         } else if (currentForm === 'register') {
@@ -93,16 +130,22 @@ const UnifiedAuthPage = () => {
       alert('An unexpected error occurred. Please try again later.');
     }
   };
-  
-  
 
   const switchForm = (formType) => {
     setCurrentForm(formType);
     setResetStep('verify');
     setVerificationError('');
+    // Clear preview URL when switching forms
+    if (formData.profileImagePreview) {
+      URL.revokeObjectURL(formData.profileImagePreview);
+    }
+    setFormData(prev => ({
+      ...prev,
+      profileImage: null,
+      profileImagePreview: null
+    }));
   };
 
-  // Toggle dark mode
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
     localStorage.setItem('theme', !darkMode ? 'dark' : 'light');
@@ -113,13 +156,12 @@ const UnifiedAuthPage = () => {
       className={`min-h-screen flex items-center justify-center transition-all duration-500 
         ${darkMode ? 'bg-gray-900 text-white' : 'bg-gradient-to-br from-blue-500 to-purple-600 text-gray-900'}`}
     >
-      {/* Theme Toggle Button */}
       <button
-            onClick={toggleDarkMode}
-            className="absolute top-4 right-4 text-xl text-white bg-black/40 p-2 rounded-full transition-colors hover:bg-gray-600 focus:outline-none"
-          >
-            {darkMode ? '🌙' : '🌞'}
-          </button>
+        onClick={toggleDarkMode}
+        className="absolute top-4 right-4 text-xl text-white bg-black/40 p-2 rounded-full transition-colors hover:bg-gray-600 focus:outline-none"
+      >
+        {darkMode ? '🌙' : '🌞'}
+      </button>
       <motion.div 
         className="w-full max-w-md"
         initial="hidden"
@@ -127,7 +169,7 @@ const UnifiedAuthPage = () => {
         variants={fadeIn}
       >
         <img
-          src="./src/assets/UniVerse.png" // Replace with the correct image path
+          src="./src/assets/UniVerse.png"
           alt="Login Image"
           className="w-64 h-32 mx-auto mb-4 rounded-2xl border-2 border-white/10"
         />
@@ -146,7 +188,7 @@ const UnifiedAuthPage = () => {
             <p className={`text-white/80 ${darkMode ? 'text-white/80' : 'text-white/80'}`}>
               {currentForm === 'login' && 'Sign in to continue'}
               {currentForm === 'register' && 'Join our community'}
-              {currentForm === "forgotPassword' && 'We\'ll help you reset your password"}
+              {currentForm === 'forgotPassword' && "We'll help you reset your password"}
             </p>
           </motion.div>
 
@@ -159,10 +201,39 @@ const UnifiedAuthPage = () => {
             )}
 
             {currentForm === 'register' && (
-              <RegisterForm 
-                formData={formData} 
-                handleChange={handleChange} 
-              />
+              <>
+                <RegisterForm 
+                  formData={formData} 
+                  handleChange={handleChange} 
+                />
+                <div className="space-y-2">
+                  <label className="block text-white text-sm font-medium">
+                    Profile Picture
+                  </label>
+                  <div className="flex items-center space-x-4">
+                    {formData.profileImagePreview && (
+                      <img
+                        src={formData.profileImagePreview}
+                        alt="Profile Preview"
+                        className="w-16 h-16 rounded-full object-cover"
+                      />
+                    )}
+                    <input
+                      type="file"
+                      name="profileImage"
+                      accept="image/*"
+                      onChange={handleChange}
+                      className="block w-full text-sm text-white/80
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-full file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-white/10 file:text-white
+                        hover:file:bg-white/20
+                        cursor-pointer"
+                    />
+                  </div>
+                </div>
+              </>
             )}
 
             {currentForm === 'forgotPassword' && (

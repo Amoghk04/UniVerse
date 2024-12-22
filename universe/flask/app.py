@@ -70,26 +70,64 @@ tickets_collection=db['tickets']
 rants_collection = db["rants"]
 games_collection = db["games"]
 
+from flask import request, jsonify
+from werkzeug.security import generate_password_hash
+import base64
+
 @app.route("/register", methods=["POST"])
 def register():
-    data = request.json
-    name = data.get("name")
-    username = data.get('username')
-    email = data.get('email')
-    password = data.get('password')
-    usn = data.get('usn')
-    isAlumni = data.get('isAlumni')
-    print(username, email, password, usn, isAlumni)
-    if not username or not email or not password or not usn or not name:
-        return jsonify({"error": "All fields are required"}), 400
-    
-    if users_collection.find_one({"username": username}) or users_collection.find_one({"email": email}) or users_collection.find_one({"usn": usn}):
-        return jsonify({"error":"Username or email already exists"}), 400
-    
-    hashed_password = generate_password_hash(password)
-    users_collection.insert_one({"name": name, "username":username, "email":email, "password": hashed_password, "usn": usn, "isAlumni": isAlumni})
+    try:
+        # Get form data
+        name = request.form.get("name")
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        usn = request.form.get('usn')
+        isAlumni = request.form.get('isAlumni') == 'true'  # Convert string to boolean
+        
+        # Get the image file
+        profile_image = request.files.get('profileImage')
 
-    return jsonify({"message":"User registered successfully"}), 201
+        # Validate required fields
+        if not all([username, email, password, usn, name]):
+            return jsonify({"error": "All fields are required"}), 400
+        
+        # Check for existing user
+        if users_collection.find_one({"username": username}) or \
+           users_collection.find_one({"email": email}) or \
+           users_collection.find_one({"usn": usn}):
+            return jsonify({"error": "Username or email already exists"}), 400
+        
+        # Process image if provided
+        image_data = None
+        if profile_image:
+            # Read the image file
+            image_binary = profile_image.read()
+            # Convert to base64 for storing in MongoDB
+            image_data = base64.b64encode(image_binary).decode('utf-8')
+        
+        # Hash password
+        hashed_password = generate_password_hash(password)
+        
+        # Prepare user document
+        user_doc = {
+            "name": name,
+            "username": username,
+            "email": email,
+            "password": hashed_password,
+            "usn": usn,
+            "isAlumni": isAlumni,
+            "profileImage": image_data
+        }
+        
+        # Insert user into database
+        users_collection.insert_one(user_doc)
+
+        return jsonify({"message": "User registered successfully"}), 201
+        
+    except Exception as e:
+        print(f"Registration error: {str(e)}")
+        return jsonify({"error": "An error occurred during registration"}), 500
 
 @app.route("/alumni/register", methods=["POST"])
 def register_alumni():
@@ -178,12 +216,29 @@ def forgot_password():
 
 @app.route("/user/<username>", methods=["GET"])
 def get_user_details(username):
-    user = users_collection.find_one({"username":username}, {"_id":0, "password": 0})
+    # Get user data excluding _id and password
+    user = users_collection.find_one(
+        {"username": username}, 
+        {"_id": 0, "password": 0}
+    )
 
     if not user:
-        return jsonify({"error": "User not found"}), 400
-    
-    return jsonify({"user": user}), 200
+        return jsonify({"error": "User not found"}), 404
+
+    # If there's a profile image, we can send it directly since it's already base64
+    # If no profile image, we'll send a default value of None
+    user_data = {
+        "username": user.get("username"),
+        "name": user.get("name"),
+        "email": user.get("email"),
+        "usn": user.get("usn"),
+        "isAlumni": user.get("isAlumni"),
+        "profileImage": user.get("profileImage")  # This will be the base64 string if it exists
+    }
+
+    return jsonify({
+        "user": user_data
+    }), 200
 
 @app.route("/<username>/upload", methods=["POST"])
 def upload_files(username):
