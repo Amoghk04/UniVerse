@@ -189,7 +189,7 @@ def get_user_details(username):
 def upload_files(username):
     if not request.files:
         return jsonify({"error": "No files uploaded"}), 400
-    generate_data_store(username)
+    
     try:
         # Create uploads directory if it doesn't exist
         os.makedirs(f"./uploads_{username}", exist_ok=True)
