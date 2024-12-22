@@ -9,15 +9,15 @@ from bson import Binary
 import base64
 from datetime import datetime, timedelta
 import re
-from langchain_loader import generate_data_store
-from query_data import get_answer, delete_memory
-from werkzeug.utils import secure_filename
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from threading import Thread
-from quiz.quiz_langchain_loader import generate_quiz_data_store
-from quiz.quiz_query_data import get_quiz_questions
+# from langchain_loader import generate_data_store
+# from query_data import get_answer, delete_memory
+# from werkzeug.utils import secure_filename
+# import smtplib
+# from email.mime.text import MIMEText
+# from email.mime.multipart import MIMEMultipart
+# from threading import Thread
+# from quiz.quiz_langchain_loader import generate_quiz_data_store
+# from quiz.quiz_query_data import get_quiz_questions
 
 app = Flask(__name__)
 
@@ -1130,30 +1130,41 @@ def add_event():
         }), 500
 
 
-@app.route('/api/events/<event_id>', methods=['DELETE'])
-def delete_event(event_id):
+@app.route('/api/events', methods=['DELETE'])
+def delete_event():
     try:
-        # Convert string ID to ObjectId
-        result = events_collection.delete_one({'_id': ObjectId(event_id)})
-        
+        data = request.get_json()
+        club_name = data.get('clubName')
+        event_title = data.get('eventTitle')
+
+        if not club_name or not event_title:
+            return jsonify({
+                'success': False,
+                'message': 'Club name and event title are required'
+            }), 400
+
+        result = events_collection.delete_one({
+            'clubName': club_name,
+            'title': event_title
+        })
+
         if result.deleted_count == 0:
             return jsonify({
                 'success': False,
-                'message': 'Event not found'
+                'message': f'Event "{event_title}" not found in club "{club_name}"'
             }), 404
-            
+
         return jsonify({
             'success': True,
             'message': 'Event deleted successfully'
         }), 200
-        
+
     except Exception as e:
         print(f"Error deleting event: {str(e)}")
         return jsonify({
             'success': False,
-            'message': 'Internal server error occurred'
+            'message': f'Internal server error occurred: {str(e)}'
         }), 500
-
 def send_async_email(sender_email, app_password, recipient_email, subject, html_content):
     try:
         # Create message
