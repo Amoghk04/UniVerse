@@ -20,7 +20,7 @@ const Activities = () => {
 
   const fetchActivities = async () => {
     try {
-      const response = await axios.get('http://20.197.34.29:5000/activities');
+      const response = await axios.get('http://127.0.0.1:5000/activities');
       setActivities(response.data);
       setFilteredActivities(response.data); // Initialize filteredActivities to show all by default
     } catch (error) {
@@ -32,7 +32,7 @@ const Activities = () => {
 
   const fetchReviews = async (placeName) => {
     try {
-      const response = await axios.get(`http://20.197.34.29:5000/reviews/${placeName}`);
+      const response = await axios.get(`http://127.0.0.1:5000/reviews/${placeName}`);
       setReviews(response.data);
       setSelectedPlace(placeName);
       setIsModalOpen(true);

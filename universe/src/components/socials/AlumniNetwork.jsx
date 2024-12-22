@@ -27,7 +27,7 @@ const AlumniNetwork = () => {
     setError(null);
     try {
       const response = await axios.get(
-        `http://20.197.34.29:5000/alumniFetchAll?search=${encodeURIComponent(search)}`
+        `http://127.0.0.1:5000/alumniFetchAll?search=${encodeURIComponent(search)}`
       );
       // Ensure each alumni object has the required properties
       const processedAlumni = response.data.map(alumnus => ({
