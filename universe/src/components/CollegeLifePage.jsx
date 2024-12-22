@@ -14,7 +14,7 @@ const CollegeLifePage = () => {
       icon: FileLock2,
       description: 'Post absolutely anything, from teachers to classmates to friends...',
       color: 'bg-gradient-to-br from-red-900 to-orange-600',
-      action: () => navigate('/rants'), // Placeholder action
+      action: () => navigate('/posts'), // Placeholder action
     },
     {
       id: 'gaming',

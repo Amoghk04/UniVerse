@@ -483,6 +483,7 @@ def add_review(place_name, review, rating, username):
     avg_rating = list(avg_rating)
     if avg_rating:
         avg_rating = avg_rating[0]["avg_rating"]
+        avg_rating = round(avg_rating, 1)
         places_collection.update_one(
             {"name": place_name},
             {"$set": {"avg_rating": avg_rating}}
@@ -1066,7 +1067,7 @@ def send_bulk_email():
         unique_emails = users_collection.distinct("email")
         if not unique_emails:
             return jsonify({"status": "error", "message": "No recipient emails found"}), 404
-        unique_emails = ["adityakl1509@gmail.com"]
+        
         # Create HTML content
         html_content = f"""
         <html>
