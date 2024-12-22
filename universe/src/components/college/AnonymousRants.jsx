@@ -9,7 +9,7 @@ const RantPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newRant, setNewRant] = useState({ title: "", content: "" });
-  const url = "http://20.197.34.29:5000";
+  const url = "http://127.0.0.1:5000";
 
   useEffect(() => {
     // Fetch current rants from the Flask API

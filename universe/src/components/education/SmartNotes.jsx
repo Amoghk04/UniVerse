@@ -74,7 +74,7 @@ const RAGInterface = () => {
     });
 
     try {
-      const response = await fetch(`http://20.197.34.29:5000/${user}/upload`, {
+      const response = await fetch(`http://127.0.0.1:5000/${user}/upload`, {
         method: "POST",
         body: formData,
         headers: {
@@ -120,7 +120,7 @@ const RAGInterface = () => {
 
     try {
       const response = await fetch(
-        `http://20.197.34.29:5000/${user}/delete_memory`,
+        `http://127.0.0.1:5000/${user}/delete_memory`,
         {
           method: "DELETE",
           headers: {
@@ -162,7 +162,7 @@ const RAGInterface = () => {
     setIsTyping(true); // Start typing animation
 
     try {
-      const response = await fetch(`http://20.197.34.29:5000/${user}/query`, {
+      const response = await fetch(`http://127.0.0.1:5000/${user}/query`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

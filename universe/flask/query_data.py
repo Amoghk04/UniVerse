@@ -62,12 +62,11 @@ def delete_memory(user_id, mongodb_uri):
         if client:
             client.close()
 
-def get_answer(user_id, query, mongodb_uri):
+def get_answer(user_id, query, mongodb_uri, k=10):
     # Load persistent memory from MongoDB
     memory = load_memory(user_id, mongodb_uri)
 
     query_text = query
-    k = 10
 
     # Prepare embeddings and Chroma database
     embedding_function = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L12-v2")

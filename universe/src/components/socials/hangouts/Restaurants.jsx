@@ -23,7 +23,7 @@ const Restaurants = () => {
 
   const fetchFoods = async () => {
     try {
-      const response = await axios.get("http://20.197.34.29:5000/food");
+      const response = await axios.get("http://127.0.0.1:5000/food");
       setFoods(response.data);
       setFilteredFoods(response.data); // Initialize filteredFoods to show all by default
     } catch (error) {
@@ -36,7 +36,7 @@ const Restaurants = () => {
   const fetchReviews = async (placeName) => {
     try {
       const response = await axios.get(
-        `http://20.197.34.29:5000/reviews/${placeName}`
+        `http://127.0.0.1:5000/reviews/${placeName}`
       );
       setReviews(response.data);
       setSelectedPlace(placeName);

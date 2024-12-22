@@ -15,11 +15,12 @@ const QuizRoom = () => {
   const [currentRoom, setCurrentRoom] = useState(null);
   const [username, setUsername] = useState("");
   const [connected, setConnected] = useState(false);
+  const user = localStorage.getItem('currentUsername');
   const navigate = useNavigate();
 
   // Initialize socket connection
   useEffect(() => {
-    const newSocket = io("http://20.197.34.29:5000", {
+    const newSocket = io("http://127.0.0.1:5000", {
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
@@ -114,37 +115,33 @@ const QuizRoom = () => {
 
   const sendFilesToServer = async () => {
     if (files.length === 0) {
-      alert("No files to upload.");
-      return;
+        alert("No files to upload.");
+        return;
     }
-    
     const formData = new FormData();
     files.forEach((file, index) => {
-      formData.append(`file_${index}`, file);
+        formData.append(`file_${index}`, file);
     });
-  
     try {
-      const response = await fetch("http://20.197.34.29:5000/upload", {
-        method: "POST",
-        body: formData,
-        headers: {
-          "Access-Control-Allow-Origin": "*",
-        },
-      });
-  
-      if (!response.ok) {
-        throw new Error("Failed to upload files.");
-      }
-  
-      const data = await response.json();
-      console.log("Server Response:", data);
-      alert("Files uploaded successfully!");
-      setFiles([]);
+        const response = await fetch(`http://127.0.0.1:5000/quiz/${user}/uploads`, { // Ensure the URL matches your Flask route
+            method: "POST",
+            body: formData,
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error("Server Error:", errorData);
+            throw new Error("Failed to upload files.");
+        }
+        const data = await response.json();
+        console.log("Server Response:", data);
+        alert("Files uploaded successfully!");
+        setFiles([]);
     } catch (error) {
-      console.error("Error uploading files:", error);
-      alert("Failed to upload files.");
+        console.error("Error uploading files:", error);
+        alert("Failed to upload files.");
     }
-  };
+};
+
 
   const handleJoinRoom = useCallback(() => {
     if (!socket || !connected) {
