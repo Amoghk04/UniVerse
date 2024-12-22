@@ -60,7 +60,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <Route path="/college-life" element={<CollegeLifePage />} />
         <Route path="/club-interaction-spaces" element={<ClubInteractionSpaces />} />
         <Route path="/gaming-communities" element={<GamingComms />} />
-        <Route path="/rants" element={<RantPage />} />
+        <Route path="/posts" element={<RantPage />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>

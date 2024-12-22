@@ -19,7 +19,7 @@ const Hangouts = () => {
   const [selectedPlace, setSelectedPlace] = useState(null);
   const [sortOrder, setSortOrder] = useState('none'); // for sorting order
   const navigate = useNavigate();
-  const url = "http://127.0.0.1:5000";
+  const url = "http://20.197.34.29:5000";
 
   // Carousel state
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -120,7 +120,7 @@ const Hangouts = () => {
   // Fetch reviews for a selected place
   const fetchReviews = async (placeName) => {
     try {
-      const response = await axios.get(`http://127.0.0.1:5000/reviews/${placeName}`);
+      const response = await axios.get(`http://20.197.34.29:5000/reviews/${placeName}`);
       setReviews(response.data);
       setSelectedPlace(placeName);
       setIsModalOpen(true);

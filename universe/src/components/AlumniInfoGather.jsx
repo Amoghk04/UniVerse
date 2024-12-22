@@ -38,7 +38,7 @@ const AlumniInfoGather = () => {
     };
 
     console.log(data);
-    const url = 'http://127.0.0.1:5000/alumni/register'; // Updated the URL
+    const url = 'http://20.197.34.29:5000/alumni/register'; // Updated the URL
 
     try {
       // Send data to backend (using correct URL)
