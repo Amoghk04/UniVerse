@@ -1364,5 +1364,12 @@ def quiz_upload(username):
 def get_questions():
     return jsonify(questions)
 
+
+@app.route('/blacklisted-words', methods=['GET'])
+def get_blacklisted_words():
+    with open("blacklisted_words.txt", "r") as file:
+        words = [line.strip() for line in file]
+    return jsonify(words)
+
 if __name__=="__main__":
     socketio.run(app, debug=True, host="0.0.0.0", port=5000)
