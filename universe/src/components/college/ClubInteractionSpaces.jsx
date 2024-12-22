@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 
+
 // Reusable components
 const Card = ({ children, className }) => (
     <div className={`bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md ${className}`}>{children}</div>
@@ -55,11 +56,9 @@ const AvatarFallback = ({ children }) => (
 );
 
 const ClubInteractionSpaces = () => {
-    const [user, setUser] = useState(() => {
-    });
-
-    const [filteredClubs, setfilteredClubs] = useState([]);
     
+    const [filteredClubs, setfilteredClubs] = useState([]);
+    const [user, setUser] = useState(null);
     const handleAuth = async (e) => {
         e.preventDefault();
     
@@ -168,6 +167,7 @@ const ClubInteractionSpaces = () => {
     
         fetchEvents();
     }, [selectedClub]);
+
     
 
     // Effects
@@ -375,9 +375,53 @@ console.log('Filtered Clubs:', filteredClubs);
         fetchClubs();
       }, [])
 
+
+  
+  const [loading, setLoading] = useState(true);
+  
+
+  useEffect(() => {
+    // Get username from localStorage
+    const username = localStorage.getItem("currentUsername");
+
+    if (!username) {
+      setError("No username found in localStorage. Please log in again.");
+      setLoading(false);
+      return;
+    }
+
+    // Fetch user details based on username
+    axios
+      .get(`/api/user-info?username=${username}`) // Replace with your actual endpoint
+      .then((response) => {
+        setUser(response.data);
+        //isAdmin(user.clubadmin);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching user info:", error);
+        setError("Failed to fetch user information. Please try again.");
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
+
+  if (!user) {
+    return <div>Error: User information could not be loaded.</div>;
+  }
+
+
+
     return (
         <div className={`min-h-screen ${darkMode ? 'dark' : ''} bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white`}>
-            {/* Authentication Modal */}
+            {/* Authentication Modal
             {authModalVisible && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                     <Card className="w-96">
@@ -424,7 +468,7 @@ console.log('Filtered Clubs:', filteredClubs);
                         </CardContent>
                     </Card>
                 </div>
-            )}
+            )} */}
 
             {/* Main Layout */}
             <div className="flex">
@@ -432,13 +476,13 @@ console.log('Filtered Clubs:', filteredClubs);
                 <div className="w-1/4 h-screen bg-gray-200 dark:bg-gray-800 p-4 space-y-4 overflow-y-auto">
                     {user && (
                         <div className="flex items-center space-x-2 mb-6">
-                            <Avatar>
+                            {/* <Avatar>
                                 <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${user.username}`} />
-                                <AvatarFallback>{user.username[0]}</AvatarFallback>
-                            </Avatar>
+                                <AvatarFallback>{user.username}</AvatarFallback>
+                            </Avatar> */}
                             <div>
-                                <p className="font-medium">{user.username}</p>
-                                <p className="text-sm text-gray-500">{user.role}</p>
+                                <p className="font-medium text-white-500">{user.username}</p>
+                                <p className="text-sm text-white-500">{user.role}</p>
                             </div>
                         </div>
                     )}

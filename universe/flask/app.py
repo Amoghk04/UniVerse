@@ -9,15 +9,15 @@ from bson import Binary
 import base64
 from datetime import datetime, timedelta
 import re
-from langchain_loader import generate_data_store
-from query_data import get_answer, delete_memory
-from werkzeug.utils import secure_filename
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from threading import Thread
-from quiz.quiz_langchain_loader import generate_quiz_data_store
-from quiz.quiz_query_data import get_quiz_questions
+# from langchain_loader import generate_data_store
+# from query_data import get_answer, delete_memory
+# from werkzeug.utils import secure_filename
+# import smtplib
+# from email.mime.text import MIMEText
+# from email.mime.multipart import MIMEMultipart
+# from threading import Thread
+# from quiz.quiz_langchain_loader import generate_quiz_data_store
+# from quiz.quiz_query_data import get_quiz_questions
 
 app = Flask(__name__)
 
@@ -1359,6 +1359,23 @@ def get_blacklisted_words():
     with open("blacklisted_words.txt", "r") as file:
         words = [line.strip() for line in file]
     return jsonify(words)
+
+@app.route("/api/user-info", methods=["GET"])
+def get_user_info():
+    username = request.args.get("username")
+
+    if not username:
+        return jsonify({"message": "Username is required"}), 400
+
+    # Query MongoDB for the user with the specified username
+    user = users_collection.find_one({"username": username})
+
+    if user:
+        # Remove the '_id' field from the response as it's not typically needed in the response
+        user.pop("_id", None)
+        return jsonify(user)
+    else:
+        return jsonify({"message": "User not found"}), 404
 
 if __name__=="__main__":
     socketio.run(app, debug=True, host="0.0.0.0", port=5000)
