@@ -28,10 +28,10 @@ def generate_quiz_data_store(username):
         print(f"Error in generate_data_store: {e}")
 
 
-def load_existing_files():
+def load_existing_files(username):
     try:
-        if os.path.exists(PROCESSED_FILES_TRACKER):
-            with open(PROCESSED_FILES_TRACKER, "r") as f:
+        if os.path.exists(PROCESSED_FILES_TRACKER+f"_{username}"):
+            with open(PROCESSED_FILES_TRACKER+f"_{username}", "r") as f:
                 existing_files = set(f.read().splitlines())
         else:
             existing_files = set()
@@ -51,13 +51,13 @@ def update_processed_files(new_files, username):
 
 def load_new_documents(username):
     try:
-        existing_files = load_existing_files()
-        all_files = {f for f in os.listdir(DATA_PATH+f"_{username}") if f.endswith(('.pdf', '.ppt', '.pptx', '.docx'))}
+        existing_files = load_existing_files(username)
+        all_files = {f for f in os.listdir(DATA_PATH+f"_{username}_quiz") if f.endswith(('.pdf', '.ppt', '.pptx', '.docx'))}
         new_files = all_files - existing_files
 
         documents = []
         for file_name in new_files:
-            file_path = os.path.join(DATA_PATH+f"_{username}", file_name)
+            file_path = os.path.join(DATA_PATH+f"_{username}_quiz", file_name)
             text = ""
 
             if file_name.endswith('.pdf'):
@@ -115,18 +115,18 @@ def split_text(documents: list[Document]):
         return []
 
 
-def save_to_chroma(chunks: list[Document]):
+def save_to_chroma(chunks: list[Document], username):
     try:
         embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L12-v2")
 
-        if os.path.exists(CHROMA_PATH):
-            db = Chroma(persist_directory=CHROMA_PATH, embedding_function=embeddings)
+        if os.path.exists(CHROMA_PATH+f"_{username}"):
+            db = Chroma(persist_directory=CHROMA_PATH+f"_{username}", embedding_function=embeddings)
         else:
-            db = Chroma.from_documents([], embeddings, persist_directory=CHROMA_PATH)
+            db = Chroma.from_documents([], embeddings, persist_directory=CHROMA_PATH+f"_{username}")
 
         # Add new chunks to the database
         db.add_documents(chunks)
         db.persist()
-        print(f"Saved {len(chunks)} new chunks to {CHROMA_PATH}")
+        print(f"Saved {len(chunks)} new chunks to {CHROMA_PATH+f"_{username}"}")
     except Exception as e:
         print(f"Error in save_to_chroma: {e}")

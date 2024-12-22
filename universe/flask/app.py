@@ -1245,7 +1245,7 @@ def quiz_upload(username):
         return jsonify({"error": "No files uploaded"}), 400
 
     try:
-        upload_folder = f"./uploads_{username}"
+        upload_folder = f"./uploads_{username}_quiz"
         os.makedirs(upload_folder, exist_ok=True)
 
         uploaded_files = []
@@ -1257,6 +1257,9 @@ def quiz_upload(username):
                 file.save(filepath)
                 uploaded_files.append(filename)
 
+        generate_quiz_data_store(username)
+        print("Generated vector embeddings")
+        
         return jsonify({"message": "Files uploaded successfully", "files": uploaded_files}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
