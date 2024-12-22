@@ -161,7 +161,7 @@ def register_alumni():
     # Debugging: Print the received data for verification
     print(username, email, password, year_pass_out, companies, skills)
 
-    if(isAlumni == 'true'):
+    if isAlumni == 'true':
         isAlumni = True
     else:
         isAlumni = False
@@ -169,9 +169,15 @@ def register_alumni():
     # Check if all required fields are provided
     if not username or not email or not password or not name or not year_pass_out or not companies or not skills:
         return jsonify({"error": "All fields are required"}), 400
-    
+
     # Hash the password before storing
     hashed_password = generate_password_hash(password)
+
+    # Retrieve the profile image from an existing user (ChillGuy)
+    chillGuy = users_collection.find_one({"name": name}, {"profileImage": 1, "_id": 0})
+
+    # If ChillGuy exists and has a profile image, use it
+    profileImage = chillGuy["profileImage"] if chillGuy and "profileImage" in chillGuy else None
 
     # Prepare alumni-specific data
     alumni_data = {
@@ -182,7 +188,8 @@ def register_alumni():
         "isAlumni": isAlumni,
         "yearPassOut": year_pass_out,
         "companies": companies,
-        "skills": skills
+        "skills": skills,
+        "profileImage": profileImage,
     }
 
     # Insert alumni data into the collection
@@ -1036,6 +1043,7 @@ def get_alumni():
                 'companies': {'$exists': True},
                 '$or': [
                     {'name': {'$regex': f'.*{search_keywords}.*', '$options': 'i'}},
+                    {'yearPassOut': int(search_keywords) if search_keywords.isdigit() else None},
                     {'skills': {'$regex': f'.*{search_keywords}.*', '$options': 'i'}},
                     {'companies': {'$regex': f'.*{search_keywords}.*', '$options': 'i'}}
                 ]
@@ -1045,9 +1053,10 @@ def get_alumni():
         projection = {
             'name': 1,
             'email': 1,
-            'yearPassout': 1,
+            'yearPassOut': 1,  # Corrected here
             'companies': 1,
             'skills': 1,
+            'profileImage':1,
             '_id': 0
         }
 
@@ -1060,9 +1069,10 @@ def get_alumni():
             processed_alumni.append({
                 'name': str(alumnus.get('name', '')),
                 'email': str(alumnus.get('email', '')),
-                'yearPassout': str(alumnus.get('yearPassout', '')),
+                'yearPassOut': str(alumnus.get('yearPassOut', '')),  # Corrected here
                 'companies': list(alumnus.get('companies', [])),
-                'skills': list(alumnus.get('skills', []))
+                'skills': list(alumnus.get('skills', [])),
+                'profileImage': alumnus.get('profileImage'),
             })
 
         return jsonify(processed_alumni), 200
@@ -1070,6 +1080,7 @@ def get_alumni():
     except Exception as e:
         print(f"Error in get_alumni: {str(e)}")  # Log the error
         return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
+
     
 @app.route('/fetchallplaces', methods=['GET'])
 def fetch_places():
