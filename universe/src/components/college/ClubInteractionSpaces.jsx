@@ -152,12 +152,13 @@ const ClubInteractionSpaces = () => {
         const fetchEvents = async () => {
             if (selectedClub) {
                 try {
-                    const response = await axios.get(`http://localhost:5000/api/events/${selectedClubId}`); // Make sure to pass the correct ID
+                    const response = await axios.get(`http://localhost:5000/api/events/${selectedClub}`); // Make sure to pass the correct ID
                     if (response.data.success) {
                         setEvents((prev) => ({
                             ...prev,
                             [selectedClub]: response.data.data,
                         }));
+                        console.log("yes")
                     }
                 } catch (error) {
                     console.error('Error fetching events:', error);
@@ -185,29 +186,31 @@ const ClubInteractionSpaces = () => {
     }, [user]);
 
 
-    const handleDeleteEvent = async (event) => {
-        if (window.confirm('Are you sure you want to delete this event?')) {
-            try {
-                const response = await axios.delete(`http://localhost:5000/api/events/${event._id}`);
-                
-                if (response.data.success) {
-                    setEvents((prev) => ({
-                        ...prev,
-                        [selectedClub]: prev[selectedClub].filter(
-                            (e) => e._id !== event._id
-                        ),
-                    }));
-                    addNotification(`Event "${event.title}" deleted`);
-                } else {
-                    addNotification(`Failed to delete event: ${response.data.message}`, 'error');
-                }
-            } catch (error) {
-                const errorMessage = error.response?.data?.message || 'Error deleting event';
-                console.error('Error deleting event:', error);
-                addNotification(errorMessage, 'error');
+    const handleDeleteEvent = async (clubName, eventTitle) => {
+        try {
+          const response = await axios.delete(`http://localhost:5000/api/events`, {
+            data: {
+              clubName,
+              eventTitle
             }
+          });
+    
+          if (response.data.success) {
+            setEvents(prev => ({
+              ...prev,
+              [clubName]: prev[clubName].filter(e => e.title !== eventTitle)
+            }));
+            addNotification(`Event "${eventTitle}" deleted successfully`);
+          } else {
+            addNotification(response.data.message, 'error');
+          }
+        } catch (error) {
+          const errorMessage = error.response?.data?.message || 'Error deleting event';
+          console.error('Error deleting event:', error);
+          addNotification(errorMessage, 'error');
         }
-    };
+      };
+    
 
     const handleEventSubmit = async (e) => {
         e.preventDefault();
@@ -299,11 +302,11 @@ const ClubInteractionSpaces = () => {
 
     const handleJoinEvent = (eventId) => {
         if (!user) return;
-
+    
         setEvents((prev) => {
             const clubEvents = [...(prev[selectedClub] || [])];
             const eventIndex = clubEvents.findIndex((e) => e.id === eventId);
-
+    
             if (eventIndex !== -1) {
                 const event = clubEvents[eventIndex];
                 if (!event.attendees.includes(user.id)) {
@@ -311,13 +314,17 @@ const ClubInteractionSpaces = () => {
                     addNotification(`You've joined "${event.title}"`);
                 }
             }
-
+    
             return {
                 ...prev,
                 [selectedClub]: clubEvents,
             };
         });
+    
+        // Redirect to the Google Form link
+        window.location.href = 'https://docs.google.com/forms/d/17p1T_r5crFMZJlwA31A8TdrutsAmB95ZBJnxkTzTeoc/viewform?edit_requested=true';
     };
+    
 
     const addNotification = (message) => {
         const notification = {
@@ -562,7 +569,7 @@ console.log('Filtered Clubs:', filteredClubs);
                                             <button
     onClick={() => {
         if (window.confirm('Are you sure you want to delete this event?')) {
-            handleDeleteEvent(event);
+            handleDeleteEvent(selectedClub, event.title)
         }
     }}
     className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-red-500"
@@ -589,9 +596,7 @@ console.log('Filtered Clubs:', filteredClubs);
                                         />
                                     )}
                                     <div className="flex items-center justify-between mt-4">
-                                        <span className="text-sm">
-                                            {event.attendees?.length || 0}/{event.maxAttendees} attendees
-                                        </span>
+                                      
                                         <button
                                             onClick={() => handleJoinEvent(event._id)} // Use _id for joining
                                             disabled={event.attendees?.includes(user?.id)}
