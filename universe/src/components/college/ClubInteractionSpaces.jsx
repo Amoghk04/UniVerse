@@ -11,6 +11,7 @@ import {
     SendIcon,
     UploadIcon,
 } from 'lucide-react';
+import axios from 'axios';
 
 // Reusable components
 const Card = ({ children, className }) => (
@@ -55,34 +56,59 @@ const AvatarFallback = ({ children }) => (
 
 const ClubInteractionSpaces = () => {
     const [user, setUser] = useState(() => {
-        const storedUser = localStorage.getItem('user');
-        return storedUser ? JSON.parse(storedUser) : null;
     });
 
-    const [isAdmin, setIsAdmin] = useState(user?.role === 'admin');
+    const [filteredClubs, setfilteredClubs] = useState([]);
+    
+    const handleAuth = async (e) => {
+        e.preventDefault();
+    
+        try {
+            // Send login request to Flask club login API
+            const response = await axios.post('http://localhost:5000/api/clublogin', {
+                username: authForm.username,
+                password: authForm.password,
+            });
+    
+            // Handle successful response
+            console.log(response.data);  // { message: "Login Successful", user: {username: "clubadmin", role: "admin"} }
+    
+            // Store the logged-in club user information in localStorage
+            localStorage.setItem('clubUser', JSON.stringify({
+                username: authForm.username,
+                role: 'admin' // or any role retrieved from the API response
+            }));
+    
+            // Set the clubUser state
+            setUser({
+                username: authForm.username,
+                role: 'admin'
+            });
+    
+            // Hide the modal on success
+            setAuthModalVisible(false);
+    
+        } catch (error) {
+            // Handle error response from backend
+            if (error.response) {
+                setError(error.response.data.error);  // Show error from the server
+            } else {
+                setError("An error occurred while logging in");
+            }
+        }
+    };
+
+    useEffect(() => {
+        const storedClubUser = localStorage.getItem('clubUser');
+        if (storedClubUser) {
+            setUser(JSON.parse(storedClubUser));
+        }
+    }, []);
+    
+
+    
     const [selectedClub, setSelectedClub] = useState(null);
     const [clubs, setClubs] = useState([
-        {
-            id: 1,
-            name: "CodeRIT",
-            description: "Coding and technology club",
-            members: 45,
-            tags: ["programming", "technology"],
-        },
-        {
-            id: 2,
-            name: "IEEE CS",
-            description: "Professional technology society",
-            members: 32,
-            tags: ["ieee", "professional"],
-        },
-        {
-            id: 3,
-            name: "S.T.A.R.D.U.ST",
-            description: "Space technology and research",
-            members: 28,
-            tags: ["space", "research"],
-        },
     ]);
 
     const [events, setEvents] = useState({});
@@ -119,9 +145,29 @@ const ClubInteractionSpaces = () => {
         time: '',
         location: '',
         link: '',
-        poster: null,
-        maxAttendees: 0,
+        image: null
     });
+
+    useEffect(() => {
+        const fetchEvents = async () => {
+            if (selectedClub) {
+                try {
+                    const response = await axios.get(`http://localhost:5000/api/events/${selectedClubId}`); // Make sure to pass the correct ID
+                    if (response.data.success) {
+                        setEvents((prev) => ({
+                            ...prev,
+                            [selectedClub]: response.data.data,
+                        }));
+                    }
+                } catch (error) {
+                    console.error('Error fetching events:', error);
+                }
+            }
+        };
+    
+        fetchEvents();
+    }, [selectedClub]);
+    
 
     // Effects
     useEffect(() => {
@@ -138,51 +184,86 @@ const ClubInteractionSpaces = () => {
         }
     }, [user]);
 
-    const handleAuth = (e) => {
-        e.preventDefault();
-        if (authForm.username && authForm.password) {
-            const newUser = {
-                id: Date.now(),
-                username: authForm.username,
-                role: authForm.role,
-            };
-            setUser(newUser);
-            setIsAdmin(authForm.role === 'admin');
-            setAuthModalVisible(false);
-            addNotification(`Welcome, ${authForm.username}!`);
-        } else {
-            setError('Please fill in all fields');
+
+    const handleDeleteEvent = async (event) => {
+        if (window.confirm('Are you sure you want to delete this event?')) {
+            try {
+                const response = await axios.delete(`http://localhost:5000/api/events/${event._id}`);
+                
+                if (response.data.success) {
+                    setEvents((prev) => ({
+                        ...prev,
+                        [selectedClub]: prev[selectedClub].filter(
+                            (e) => e._id !== event._id
+                        ),
+                    }));
+                    addNotification(`Event "${event.title}" deleted`);
+                } else {
+                    addNotification(`Failed to delete event: ${response.data.message}`, 'error');
+                }
+            } catch (error) {
+                const errorMessage = error.response?.data?.message || 'Error deleting event';
+                console.error('Error deleting event:', error);
+                addNotification(errorMessage, 'error');
+            }
         }
     };
 
-    const handleEventSubmit = (e) => {
+    const handleEventSubmit = async (e) => {
         e.preventDefault();
-        if (selectedClub) {
-            const newEvent = {
-                ...eventForm,
-                id: Date.now(),
-                createdBy: user.username,
-                attendees: [],
-                comments: [],
-            };
-            setEvents((prev) => ({
-                ...prev,
-                [selectedClub]: [...(prev[selectedClub] || []), newEvent],
-            }));
-            addNotification(`New event "${eventForm.title}" created for ${selectedClub}`);
-            setShowEventForm(false);
-            setEventForm({
-                title: '',
-                description: '',
-                date: '',
-                time: '',
-                location: '',
-                link: '',
-                poster: null,
-                maxAttendees: 0,
-            });
+        
+        if (!selectedClub) {
+            console.error('No club selected');
+            return;
+        }
+        
+        // Create the event object with proper image handling
+        const newEvent = {
+            ...eventForm,
+            clubName: selectedClub,
+            attendees: [],
+            // Make sure image is already base64 encoded from the file input handler
+            image: eventForm.image || null
+        };
+        
+        try {
+            const response = await axios.post('http://localhost:5000/api/events', newEvent);
+            
+            if (response.data.success) {
+                setEvents((prev) => ({
+                    ...prev,
+                    [selectedClub]: [...(prev[selectedClub] || []), response.data.data],
+                }));
+                
+                addNotification(`New event "${eventForm.title}" created for ${selectedClub}`);
+                setShowEventForm(false);
+                
+                // Reset form fields
+                setEventForm({
+                    title: '',
+                    description: '',
+                    date: '',
+                    time: '',
+                    location: '',
+                    link: '',
+                    image: null,
+                    maxAttendees: 0
+                });
+            } else {
+                console.error('Failed to add event:', response.data.message);
+                addNotification(`Failed to create event: ${response.data.message}`, 'error');
+            }
+        } catch (error) {
+            const errorMessage = error.response?.data?.message || 'Error adding event';
+            console.error('Error adding event:', error);
+            addNotification(errorMessage, 'error');
         }
     };
+    
+    
+    
+    
+    const [isAdmin, setIsAdmin] = useState([]);
     const handleSendMessage = () => {
         if (!newMessage.trim() || !user) return;
 
@@ -247,11 +328,45 @@ const ClubInteractionSpaces = () => {
         setNotifications((prev) => [notification, ...prev]);
     };
 
-    const filteredClubs = clubs.filter(
-        (club) =>
-            club.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            club.tags.some((tag) => tag.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
+     
+    const fetchClubs = async () => {
+        try {
+            const response = await axios.get('http://localhost:5000/api/clubs');
+            if (response.data.success) {
+                const mappedClubs = response.data.data.map(club => ({
+                    id: club._id,
+                    name: club.clubname,     // Mapping 'clubname' to 'name'
+                    description: club.descp, // Mapping 'descp' to 'description'
+                    tags: club.tags
+                }));
+                setClubs(mappedClubs);
+                setfilteredClubs(mappedClubs);
+                console.log('Fetched Clubs:', clubs);
+console.log('Filtered Clubs:', filteredClubs);
+
+            }
+            else{console.log('no')}
+        } catch (error) {
+            console.error('Error fetching clubs:', error);
+        }
+    };
+    
+    
+
+    useEffect(() => {
+        if (searchTerm.trim() === '') {
+            setfilteredClubs(clubs); // Reset to all clubs if search term is empty
+        } else {
+            const lowercasedSearchTerm = searchTerm.toLowerCase();
+            setfilteredClubs(clubs.filter(club => 
+                club.name && club.name.toLowerCase().includes(lowercasedSearchTerm) // Check for undefined club.name
+            ));
+        }
+    }, [searchTerm, clubs]);
+
+      useEffect (() => {
+        fetchClubs();
+      }, [])
 
     return (
         <div className={`min-h-screen ${darkMode ? 'dark' : ''} bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white`}>
@@ -360,17 +475,20 @@ const ClubInteractionSpaces = () => {
 
                     {/* Admin Controls */}
                     {isAdmin && (
-                        <div className="space-y-2">
-                            <button
-                                onClick={() => setShowEventForm(true)}
-                                className="w-full px-4 py-2 bg-gradient-to-r from-green-500 to-teal-600 text-white rounded-lg hover:from-green-600 hover:to-teal-700 flex items-center justify-center space-x-2"
-                            >
-                                <PlusIcon size={16} />
-                                <span>Add Event</span>
-                            </button>
-                        </div>
-                    )}
-                </div>
+    <div className="space-y-2">
+        {selectedClub && (
+                    <button onClick={() => setShowEventForm(true)} className="w-full px-4 py-2 bg-gradient-to-r from-green-500 to-teal-600 text-white rounded-lg hover:from-green-600 hover:to-teal-700 flex items-center justify-center space-x-2">
+                        <PlusIcon size={16} />
+                        <span>Add Event</span>
+                    </button>
+                )}
+            </div>
+)}
+</div>
+
+
+
+
                                 {/* Main Content */}
                                 <div className="flex-1 p-6">
                     {/* Header */}
@@ -410,97 +528,90 @@ const ClubInteractionSpaces = () => {
                         </div>
                     )}
 
-                    {selectedClub ? (
-                        <div className="space-y-6">
-                            {/* Events Section */}
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="flex items-center justify-between">
-                                        <span>Events</span>
-                                        <button
-                                            onClick={() => setShowMembers(!showMembers)}
-                                            className="flex items-center space-x-2 text-sm font-normal"
-                                        >
-                                            <UserIcon size={16} />
-                                            <span>{membersList[selectedClub]?.length || 0} members</span>
-                                        </button>
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {events[selectedClub]?.map((event) => (
-                                            <Card key={event.id}>
-                                                <CardContent className="p-4">
-                                                    <div className="flex justify-between items-start">
-                                                        <h3 className="text-lg font-bold">{event.title}</h3>
-                                                        {isAdmin && (
-                                                            <div className="flex space-x-2">
-                                                                <button
-                                                                    onClick={() => setEditingEvent(event)}
-                                                                    className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-                                                                >
-                                                                    <EditIcon size={16} />
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => {
-                                                                        if (window.confirm('Are you sure you want to delete this event?')) {
-                                                                            setEvents((prev) => ({
-                                                                                ...prev,
-                                                                                [selectedClub]: prev[selectedClub].filter(
-                                                                                    (e) => e.id !== event.id
-                                                                                ),
-                                                                            }));
-                                                                            addNotification(`Event "${event.title}" deleted`);
-                                                                        }
-                                                                    }}
-                                                                    className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-red-500"
-                                                                >
-                                                                    <TrashIcon size={16} />
-                                                                </button>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                    <div className="mt-2 space-y-2">
-                                                        <p className="text-gray-600 dark:text-gray-300">{event.description}</p>
-                                                        <div className="flex items-center space-x-2 text-sm text-gray-500">
-                                                            <CalendarIcon size={14} />
-                                                            <span>
-                                                                {new Date(event.date).toLocaleDateString()} at {event.time}
-                                                            </span>
-                                                        </div>
-                                                        <div className="text-sm text-gray-500">
-                                                            <span>Location: {event.location}</span>
-                                                        </div>
-                                                        {event.poster && (
-                                                            <img
-                                                                src={event.poster}
-                                                                alt="Event Poster"
-                                                                className="w-full h-48 object-cover rounded-lg mt-2"
-                                                            />
-                                                        )}
-                                                        <div className="flex items-center justify-between mt-4">
-                                                            <span className="text-sm">
-                                                                {event.attendees?.length || 0}/{event.maxAttendees} attendees
-                                                            </span>
-                                                            <button
-                                                                onClick={() => handleJoinEvent(event.id)}
-                                                                disabled={event.attendees?.includes(user?.id)}
-                                                                className={`px-4 py-2 rounded-lg ${
-                                                                    event.attendees?.includes(user?.id)
-                                                                        ? 'bg-gray-300 cursor-not-allowed'
-                                                                        : 'bg-blue-500 hover:bg-blue-600 text-white'
-                                                                }`}
-                                                            >
-                                                                {event.attendees?.includes(user?.id) ? 'Joined' : 'Join Event'}
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </CardContent>
-                                            </Card>
-                                        ))}
+{selectedClub ? (
+    <div className="space-y-6">
+        {/* Events Section */}
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                    <span>Events</span>
+                    <button
+                        onClick={() => setShowMembers(!showMembers)}
+                        className="flex items-center space-x-2 text-sm font-normal"
+                    >
+                        <UserIcon size={16} />
+                        <span>{membersList[selectedClub]?.length || 0} members</span>
+                    </button>
+                </CardTitle>
+            </CardHeader>
+            <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {events[selectedClub]?.map((event) => (
+                        <Card key={event._id}>
+                            <CardContent className="p-4">
+                                <div className="flex justify-between items-start">
+                                    <h3 className="text-lg font-bold">{event.title}</h3>
+                                    {isAdmin && (
+                                        <div className="flex space-x-2">
+                                            <button
+                                                onClick={() => setEditingEvent(event)}
+                                                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                                            >
+                                                <EditIcon size={16} />
+                                            </button>
+                                            <button
+    onClick={() => {
+        if (window.confirm('Are you sure you want to delete this event?')) {
+            handleDeleteEvent(event);
+        }
+    }}
+    className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-red-500"
+>
+    <TrashIcon size={16} />
+</button>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="mt-2 space-y-2">
+                                    <p className="text-gray-600 dark:text-gray-300">{event.description}</p>
+                                    <div className="flex items-center space-x-2 text-sm text-gray-500">
+                                        <CalendarIcon size={14} />
+                                        <span>{new Date(event.date).toLocaleDateString()} at {event.time}</span>
                                     </div>
-                                </CardContent>
-                            </Card>
+                                    <div className="text-sm text-gray-500">
+                                        <span>Location: {event.location}</span>
+                                    </div>
+                                    {event.image && (
+                                        <img
+                                            src={event.image}
+                                            alt="Event Poster"
+                                            className="w-full h-48 object-cover rounded-lg mt-2"
+                                        />
+                                    )}
+                                    <div className="flex items-center justify-between mt-4">
+                                        <span className="text-sm">
+                                            {event.attendees?.length || 0}/{event.maxAttendees} attendees
+                                        </span>
+                                        <button
+                                            onClick={() => handleJoinEvent(event._id)} // Use _id for joining
+                                            disabled={event.attendees?.includes(user?.id)}
+                                            className={`px-4 py-2 rounded-lg ${
+                                                event.attendees?.includes(user?.id)
+                                                    ? 'bg-gray-300 cursor-not-allowed'
+                                                    : 'bg-blue-500 hover:bg-blue-600 text-white'
+                                            }`}
+                                        >
+                                            {event.attendees?.includes(user?.id) ? 'Joined' : 'Join Event'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            </CardContent>
+        </Card>
+
 
                             {/* Chat Section */}
                             <Card>
@@ -600,101 +711,123 @@ const ClubInteractionSpaces = () => {
                 </div>
             </div>
 
-            {/* Event Form Modal */}
-            {showEventForm && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-                    <Card className="w-[600px]">
-                        <CardHeader>
-                            <CardTitle>{editingEvent ? 'Edit Event' : 'Create New Event'}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <form onSubmit={handleEventSubmit} className="space-y-4">
-                                <input
-                                    type="text"
-                                    placeholder="Event Title"
-                                    value={eventForm.title}
-                                    onChange={(e) => setEventForm({ ...eventForm, title: e.target.value })}
-                                    className="w-full p-2 border rounded dark:bg-gray-800"
-                                    required
+           {/* Event Form Modal */}
+{showEventForm && (
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <Card className="w-[600px]">
+            <CardHeader>
+                <CardTitle>{editingEvent ? 'Edit Event' : 'Create New Event'}</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <form onSubmit={handleEventSubmit} className="space-y-4">
+                    <input
+                        type="text"
+                        placeholder="Event Title"
+                        value={eventForm.title}
+                        onChange={(e) => setEventForm({ ...eventForm, title: e.target.value })}
+                        className="w-full p-2 border rounded dark:bg-gray-800"
+                        required
+                    />
+                    <textarea
+                        placeholder="Event Description"
+                        value={eventForm.description}
+                        onChange={(e) => setEventForm({ ...eventForm, description: e.target.value })}
+                        className="w-full p-2 border rounded dark:bg-gray-800 h-32"
+                        required
+                    />
+                    <div className="grid grid-cols-2 gap-4">
+                        <input
+                            type="date"
+                            value={eventForm.date}
+                            onChange={(e) => setEventForm({ ...eventForm, date: e.target.value })}
+                            className="w-full p-2 border rounded dark:bg-gray-800"
+                            required
+                        />
+                        <input
+                            type="time"
+                            value={eventForm.time}
+                            onChange={(e) => setEventForm({ ...eventForm, time: e.target.value })}
+                            className="w-full p-2 border rounded dark:bg-gray-800"
+                            required
+                        />
+                    </div>
+                    <input
+                        type="text"
+                        placeholder="Location"
+                        value={eventForm.location}
+                        onChange={(e) => setEventForm({ ...eventForm, location: e.target.value })}
+                        className="w-full p-2 border rounded dark:bg-gray-800"
+                        required
+                    />
+                    <div className="space-y-2">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Event Image
+                        </label>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                                const file = e.target.files[0];
+                                if (file) {
+                                    const reader = new FileReader();
+                                    reader.onloadend = () => {
+                                        const base64String = reader.result
+                                            .replace('data:', '')
+                                            .replace(/^.+,/, '');
+                                        setEventForm(prev => ({
+                                            ...prev,
+                                            image: base64String
+                                        }));
+                                    };
+                                    reader.readAsDataURL(file);
+                                }
+                            }}
+                            className="w-full p-2 border rounded dark:bg-gray-800"
+                        />
+                        {eventForm.image && (
+                            <div className="mt-2">
+                                <img
+                                    src={`data:image/jpeg;base64,${eventForm.image}`}
+                                    alt="Event preview"
+                                    className="w-full h-32 object-cover rounded"
                                 />
-                                <textarea
-                                    placeholder="Event Description"
-                                    value={eventForm.description}
-                                    onChange={(e) => setEventForm({ ...eventForm, description: e.target.value })}
-                                    className="w-full p-2 border rounded dark:bg-gray-800 h-32"
-                                    required
-                                />
-                                <div className="grid grid-cols-2 gap-4">
-                                    <input
-                                        type="date"
-                                        value={eventForm.date}
-                                        onChange={(e) => setEventForm({ ...eventForm, date: e.target.value })}
-                                        className="w-full p-2 border rounded dark:bg-gray-800"
-                                        required
-                                    />
-                                    <input
-                                        type="time"
-                                        value={eventForm.time}
-                                        onChange={(e) => setEventForm({ ...eventForm, time: e.target.value })}
-                                        className="w-full p-2 border rounded dark:bg-gray-800"
-                                        required
-                                    />
-                                </div>
-                                <input
-                                    type="text"
-                                    placeholder="Location"
-                                    value={eventForm.location}
-                                    onChange={(e) => setEventForm({ ...eventForm, location: e.target.value })}
-                                    className="w-full p-2 border rounded dark:bg-gray-800"
-                                    required
-                                />
-                                <input
-                                    type="number"
-                                    placeholder="Max Attendees"
-                                    value={eventForm.maxAttendees}
-                                    onChange={(e) =>
-                                        setEventForm({
-                                            ...eventForm,
-                                            maxAttendees: parseInt(e.target.value, 10),
-                                        })
-                                    }
-                                    className="w-full p-2 border rounded dark:bg-gray-800"
-                                    required
-                                    min="1"
-                                />
-                                <div className="flex justify-end space-x-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setShowEventForm(false);
-                                            setEditingEvent(null);
-                                            setEventForm({
-                                                title: '',
-                                                description: '',
-                                                date: '',
-                                                time: '',
-                                                location: '',
-                                                link: '',
-                                                poster: null,
-                                                maxAttendees: 0,
-                                            });
-                                        }}
-                                        className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                                    >
-                                        {editingEvent ? 'Update Event' : 'Create Event'}
-                                    </button>
-                                </div>
-                            </form>
-                        </CardContent>
-                    </Card>
-                </div>
-            )}
+                            </div>
+                        )}
+                    </div>
+                    
+                    <div className="flex justify-end space-x-2">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setShowEventForm(false);
+                                setEditingEvent(null);
+                                setEventForm({
+                                    title: '',
+                                    description: '',
+                                    date: '',
+                                    time: '',
+                                    location: '',
+                                    link: '',
+                                    image: null,
+                                   
+                                });
+                            }}
+                            className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        >
+                            {editingEvent ? 'Update Event' : 'Create Event'}
+                        </button>
+                    </div>
+                </form>
+            </CardContent>
+        </Card>
+    </div>
+)}
         </div>
     );
 };

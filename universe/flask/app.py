@@ -1023,6 +1023,129 @@ def fetch_places():
         print(f"Error fetching places: {e}")
         return jsonify({"success": False, "message": f"Internal server error: {str(e)}"}), 500
 
+clubs_collection=db['clubs']
+@app.route('/api/clublogin', methods=['POST'])
+def clublogin():
+    data = request.json
+    username = data.get("username")
+    password = data.get("password")
+
+    if not username or not password:
+        return jsonify({"error": "All fields are required"}), 400
+    
+    user = users_collection.find_one({"username": username})
+    if not user or not check_password_hash(user['password'], password) or not user['clubadmin']:
+        return jsonify({"error":"Invalid username or password"}), 400
+    
+    return jsonify({"message":"Login Successful"}), 200
+
+@app.route('/api/clubs', methods=['GET'])
+def get_clubs():
+    clubs = list(clubs_collection.find())
+    
+    # Convert ObjectId to string
+    for club in clubs:
+        club['_id'] = str(club['_id'])
+
+    # Return a structured response with success status
+    return jsonify({
+        'success': True,
+        'data': clubs  # Include the clubs data
+    })
+
+events_collection=db['events']
+@app.route('/api/events/<club_name>', methods=['GET'])
+def get_club_events(club_name):
+    try:
+        # Fetch events for the specified club from MongoDB
+        events = list(events_collection.find({'clubName': club_name}))
+        
+        # Convert ObjectIds to strings and handle image data
+        for event in events:
+            event['_id'] = str(event['_id'])
+            # Convert image data to proper format for frontend
+            if event.get('image'):
+                event['image'] = f"data:image/jpeg;base64,{event['image']}"
+        
+        return jsonify({
+            'success': True,
+            'data': events
+        }), 200
+    
+    except Exception as e:
+        print(f"Error fetching events: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': 'Internal server error occurred'
+        }), 500
+
+@app.route('/api/events', methods=['POST'])
+def add_event():
+    try:
+        data = request.json
+        required_fields = ['title', 'description', 'date', 'time', 'location', 'clubName']
+        
+        # Check for missing required fields (image is optional)
+        missing_fields = [field for field in required_fields if field not in data]
+        if missing_fields:
+            return jsonify({
+                'success': False, 
+                'message': f'Missing required fields: {", ".join(missing_fields)}'
+            }), 400
+        
+        new_event = {
+            'title': data['title'],
+            'description': data['description'],
+            'date': data['date'],
+            'time': data['time'],
+            'location': data['location'],
+            'image': data.get('image'),  # Use get() to handle missing image
+            'attendees': [],
+            'clubName': data['clubName']
+        }
+        
+        # Insert into MongoDB
+        result = events_collection.insert_one(new_event)
+        
+        # Get the inserted document with _id
+        inserted_event = events_collection.find_one({'_id': result.inserted_id})
+        
+        # Convert ObjectId to string for JSON serialization
+        inserted_event['_id'] = str(inserted_event['_id'])
+        
+        return jsonify({'success': True, 'data': inserted_event}), 201
+        
+    except Exception as e:
+        print(f"Error adding event: {str(e)}")  # Log the error
+        return jsonify({
+            'success': False,
+            'message': 'Internal server error occurred'
+        }), 500
+
+
+@app.route('/api/events/<event_id>', methods=['DELETE'])
+def delete_event(event_id):
+    try:
+        # Convert string ID to ObjectId
+        result = events_collection.delete_one({'_id': ObjectId(event_id)})
+        
+        if result.deleted_count == 0:
+            return jsonify({
+                'success': False,
+                'message': 'Event not found'
+            }), 404
+            
+        return jsonify({
+            'success': True,
+            'message': 'Event deleted successfully'
+        }), 200
+        
+    except Exception as e:
+        print(f"Error deleting event: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': 'Internal server error occurred'
+        }), 500
 
     
 if __name__=="__main__":
