@@ -127,6 +127,6 @@ def save_to_chroma(chunks: list[Document], username):
         # Add new chunks to the database
         db.add_documents(chunks)
         db.persist()
-        print(f"Saved {len(chunks)} new chunks to {CHROMA_PATH+f"_{username}"}")
+        print(f"Saved {len(chunks)} new chunks to {CHROMA_PATH+f'_{username}'}")
     except Exception as e:
         print(f"Error in save_to_chroma: {e}")
