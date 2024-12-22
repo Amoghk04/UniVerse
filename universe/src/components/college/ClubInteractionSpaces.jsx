@@ -586,13 +586,6 @@ console.log('Filtered Clubs:', filteredClubs);
             <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                     <span>Events</span>
-                    <button
-                        onClick={() => setShowMembers(!showMembers)}
-                        className="flex items-center space-x-2 text-sm font-normal"
-                    >
-                        <UserIcon size={16} />
-                        <span>{membersList[selectedClub]?.length || 0} members</span>
-                    </button>
                 </CardTitle>
             </CardHeader>
             <CardContent>
