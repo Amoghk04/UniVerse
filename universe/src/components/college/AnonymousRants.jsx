@@ -44,14 +44,14 @@ const RantPage = () => {
       .then((response) => setBlacklistedWords(response.data))
       .catch((error) => console.error("Error fetching blacklist:", error));
   }, []);
-  const addRant = () => {
+  const addPost = () => {
     if (!newRant.title || !newRant.content) {
       setErrorMessage("Both title and content are required.");
       return;
     }
 
     if (containsBlacklistedWords(newRant.title) || containsBlacklistedWords(newRant.content)) {
-      setErrorMessage("Your rant contains inappropriate or blacklisted words.");
+      setErrorMessage("Your post contains inappropriate or blacklisted words.");
       return;
     }
 
@@ -137,7 +137,7 @@ const RantPage = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Add a Rant</h2>
+              <h2 className="text-xl font-bold">Add a Post</h2>
               <button onClick={() => setIsModalOpen(false)}>
                 <XIcon size={24} className="text-gray-800 dark:text-gray-200" />
               </button>
@@ -146,7 +146,7 @@ const RantPage = () => {
               <p className="text-red-500 text-sm mb-4">{errorMessage}</p>
             )}
             <div className="mb-4">
-              <label className="block text-sm font-medium mb-2">Rant Title</label>
+              <label className="block text-sm font-medium mb-2">Post Title</label>
               <input
                 type="text"
                 className="w-full p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -155,7 +155,7 @@ const RantPage = () => {
               />
             </div>
             <div className="mb-4">
-              <label className="block text-sm font-medium mb-2">Rant Content</label>
+              <label className="block text-sm font-medium mb-2">Post Content</label>
               <textarea
                 className="w-full p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 rows="4"
@@ -164,7 +164,7 @@ const RantPage = () => {
               ></textarea>
             </div>
             <motion.button
-              onClick={addRant}
+              onClick={addPost}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
