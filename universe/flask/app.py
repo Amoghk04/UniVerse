@@ -9,15 +9,15 @@ from bson import Binary
 import base64
 from datetime import datetime, timedelta
 import re
-# from langchain_loader import generate_data_store
-# from query_data import get_answer, delete_memory
-# from werkzeug.utils import secure_filename
-# import smtplib
-# from email.mime.text import MIMEText
-# from email.mime.multipart import MIMEMultipart
-# from threading import Thread
-# from quiz.quiz_langchain_loader import generate_quiz_data_store
-# from quiz.quiz_query_data import get_quiz_questions
+from langchain_loader import generate_data_store
+from query_data import get_answer, delete_memory
+from werkzeug.utils import secure_filename
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from threading import Thread
+from quiz.quiz_langchain_loader import generate_quiz_data_store
+from quiz.quiz_query_data import get_quiz_questions
 
 app = Flask(__name__)
 
@@ -1331,6 +1331,13 @@ def quiz_upload(username):
         return jsonify({"message": "Files uploaded successfully", "files": uploaded_files}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route('/blacklisted-words', methods=['GET'])
+def get_blacklisted_words():
+    with open("blacklisted_words.txt", "r") as file:
+        words = [line.strip() for line in file]
+    return jsonify(words)
 
 if __name__=="__main__":
     socketio.run(app, debug=True, host="0.0.0.0", port=5000)
