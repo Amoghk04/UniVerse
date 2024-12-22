@@ -33,10 +33,6 @@ const EducationPage = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-white">
-      <header className="bg-white dark:bg-gray-800 shadow-md py-4 flex items-center justify-between px-4">
-        <h1 className="text-2xl font-bold">Education</h1>
-        <div className="w-12"></div>
-      </header>
       <main className="container mx-auto px-4 py-12">
         <motion.h2
           initial={{ opacity: 0, y: -20 }}
@@ -44,7 +40,7 @@ const EducationPage = () => {
           transition={{ duration: 0.5 }}
           className="text-4xl font-extrabold text-center mb-12 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600"
         >
-          Explore Education Tools
+          Education
         </motion.h2>
 
         <div className="grid md:grid-cols-3 gap-6">
