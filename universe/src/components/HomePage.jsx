@@ -182,45 +182,27 @@ const HomePage = () => {
                 </div>
             </header>
 
-            {/* Dynamic Navbar */}
-            <nav className="w-full py-4">
-                {/* Mobile Menu Button */}
-                <div className="lg:hidden flex justify-center mb-4">
-                    <button
-                        onClick={() => setMobileMenuOpen(!isMobileMenuOpen)}
-                        className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 focus:outline-none"
-                    >
-                        <span className="block w-6 h-0.5 bg-gray-600 dark:bg-gray-300 mb-1"></span>
-                        <span className="block w-6 h-0.5 bg-gray-600 dark:bg-gray-300 mb-1"></span>
-                        <span className="block w-6 h-0.5 bg-gray-600 dark:bg-gray-300"></span>
-                    </button>
-                </div>
+            <div className="container mx-auto px-4 py-4 flex flex-wrap justify-center gap-4">
+  {/* Mapping over sections to create buttons */}
+  {sections.map((section) => (
+    <motion.button
+      key={section.id}
+      onClick={() => {
+        if (section.external && section.url) {
+          window.open(section.url, "_blank", "noopener,noreferrer");
+        } else {
+          navigate(`/${section.id}`);
+        }
+      }}
+      className={`${section.color} w-40 flex items-center justify-center text-white rounded-lg p-3 shadow-md transition-transform transform hover:scale-105 hover:shadow-lg`}
+      whileHover={{ scale: 1.05 }}
+    >
+      <section.icon className="mr-2" size={20} />
+      {section.title}
+    </motion.button>
+  ))}
+</div>
 
-                {/* Mobile Menu */}
-                <AnimatePresence>
-                    {isMobileMenuOpen && (
-                        <motion.div
-                            initial={{ opacity: 0, y: -20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            className="lg:hidden"
-                        >
-                            <div className="flex flex-col space-y-2 items-center">
-                                {sections.map((section) => (
-                                    <NavButton key={section.id} section={section} />
-                                ))}
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-
-                {/* Desktop Menu */}
-                <div className="hidden lg:flex justify-center space-x-4">
-                    {sections.map((section) => (
-                        <NavButton key={section.id} section={section} />
-                    ))}
-                </div>
-            </nav>
 
             {/* Main Content - Posts Feed */}
             <main className="container mx-auto px-4 py-8">

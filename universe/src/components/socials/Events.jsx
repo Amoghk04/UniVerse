@@ -61,7 +61,8 @@ const Events = () => {
 
   const categories = ["All", "Music", "Movies", "Stand-Up Comedy", "Theatre", "Art", "Other"];
   const types =["Instagram", "Twitter", "Mail ID", "Phone No.", "Other"];
-  const filteredEvents = selectedCategory === "All" ? events : events.filter(event => event.category === selectedCategory);
+  const [filteredEvents, setFilteredEvents] = useState([]);
+  const [query, setQuery] = useState('');
 
   const handleAddTicket = async (e) => {
     e.preventDefault();
@@ -193,6 +194,23 @@ const Events = () => {
     </motion.div>
   );
 
+  const handleCategoryClick = (category) => {
+    console.log('Category clicked:', category); // Check the category passed in
+    const categorizedEvents = events.filter(event => {
+      return event.category === category;
+    });
+    
+    setFilteredEvents(categorizedEvents);
+  };
+
+  useEffect(() => {
+      if (query.trim() === '') {
+        setFilteredEvents(events);
+      } else {
+        setFilteredEvents(events.filter(event => event.name.toLowerCase().includes(query.toLowerCase())));
+      }
+    }, [query, events]);
+
   return (
     <div
       className={`min-h-screen transition-all duration-500 ${
@@ -201,17 +219,12 @@ const Events = () => {
     >
       {/* Header */}
       <header className="bg-white dark:bg-gray-800 shadow-md py-4 flex items-center justify-between px-4 w-full">
+        
         <div className="flex-1 flex justify-center">
-          <h1 className="text-2xl font-bold">Events</h1>
+          <h1 className="text-4xl font-extrabold text-center bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-green-600">Events</h1>
         </div>
         <div className="flex items-center space-x-4">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-          >
-            <UserIcon className="text-gray-800 dark:text-gray-200" />
-          </motion.button>
+         
         </div>
       </header>
 
@@ -230,6 +243,7 @@ const Events = () => {
             <input
               type="text"
               placeholder="Search tickets..."
+              onChange={(e) => setQuery(e.target.value)}
               className="flex-grow px-4 py-2 rounded-full bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <motion.button
@@ -249,12 +263,12 @@ const Events = () => {
               {categories.map((category) => (
                 <motion.button
                   key={category}
-                  onClick={() => setSelectedCategory(category)}
+                  onClick={() => handleCategoryClick(category)}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   className={`px-6 py-2 rounded-full ${
                     selectedCategory === category
-                      ? "bg-blue-500 text-white"
+                      ? "bg-purple-500 text-white"
                       : "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
                   } transition-colors`}
                 >
