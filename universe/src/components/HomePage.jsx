@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
+
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BookOpenIcon, UsersIcon, UniversityIcon, SunIcon, MoonIcon, UserIcon, HeartIcon, MessageCircleIcon, PlusIcon, XIcon } from "lucide-react";
 import moment from "moment";
@@ -15,6 +16,7 @@ const HomePage = () => {
     const [newPostTitle, setNewPostTitle] = useState("");
     const [newPostImage, setNewPostImage] = useState("");
     const [newPostDescription, setNewPostDescription] = useState("");
+    const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     // Load theme and sample posts on first mount
     useEffect(() => {
@@ -59,6 +61,30 @@ const HomePage = () => {
         }, {});
         setComments(initialComments);
     }, []);
+
+    const sections = [
+        {
+            id: "education",
+            title: "Education",
+            icon: BookOpenIcon,
+            description: "Collaborative learning ecosystem with AI-powered tools",
+            color: "bg-gradient-to-br from-blue-500 to-indigo-600",
+        },
+        {
+            id: "socials",
+            title: "Socials",
+            icon: UsersIcon,
+            description: "Connect, discover, and engage with your community",
+            color: "bg-gradient-to-br from-green-500 to-teal-600",
+        },
+        {
+            id: "college-life",
+            title: "College Life",
+            icon: UniversityIcon,
+            description: "Dynamic platform for campus experiences",
+            color: "bg-gradient-to-br from-pink-500 to-purple-600",
+        },
+    ];
 
     const toggleDarkMode = () => {
         const newMode = !darkMode;
@@ -111,86 +137,148 @@ const HomePage = () => {
         setIsModalOpen(false);
     };
 
+    // NavButton component for reuse in mobile and desktop menus
+    const NavButton = ({ section }) => (
+        <motion.button
+            onClick={() => {
+                navigate(`/${section.id}`);
+                setMobileMenuOpen(false);
+            }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className={`${section.color} text-white rounded-xl p-2 flex items-center space-x-2 shadow-lg transition-transform focus:outline-none`}
+        >
+            <section.icon size={20} />
+            <span className="font-semibold">{section.title}</span>
+        </motion.button>
+    );
+
     return (
         <div className={`min-h-screen ${darkMode ? "dark bg-gray-900 text-white" : "bg-white text-gray-900"}`}>
+            {/* Header */}
             <header className="sticky top-0 z-50 backdrop-blur-md bg-white/70 dark:bg-gray-900/70 shadow-sm">
                 <div className="container mx-auto px-4 py-4 flex justify-between items-center">
                     <img src={logo} alt="UniVerse Logo" className="w-40 h-auto rounded-2xl border-2 border-white/10" />
                     <div className="flex items-center space-x-4">
-                        <motion.button onClick={toggleDarkMode} className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors focus:outline-none" aria-label="Toggle Dark Mode">
+                        <motion.button
+                            onClick={toggleDarkMode}
+                            className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors focus:outline-none"
+                        >
                             {darkMode ? <SunIcon className="text-yellow-500" /> : <MoonIcon className="text-blue-600" />}
                         </motion.button>
-                        <motion.button onClick={() => navigate("/profile")} className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors focus:outline-none" aria-label="Go to Profile">
+                        <motion.button
+                            onClick={() => navigate("/profile")}
+                            className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors focus:outline-none"
+                        >
                             <UserIcon className="text-gray-800 dark:text-gray-200" />
                         </motion.button>
-                        <motion.button onClick={() => setIsModalOpen(true)} className="p-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors focus:outline-none" aria-label="Create New Post">
+                        <motion.button
+                            onClick={() => setIsModalOpen(true)}
+                            className="p-3 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition-colors focus:outline-none"
+                        >
                             <PlusIcon size={20} />
                         </motion.button>
                     </div>
                 </div>
             </header>
 
-            {/* Navigation Section Above Feed */}
-            <div className="container mx-auto px-4 py-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <motion.button
-        onClick={() => navigate("/education")}
-        className="flex items-center justify-center bg-blue-500 text-white rounded-xl p-4 shadow-lg transition-transform transform hover:scale-105 hover:shadow-xl"
-        whileHover={{ scale: 1.05 }}
-    >
-        <BookOpenIcon className="mr-2" /> {/* Icon for Education */}
-        Education
-    </motion.button>
-    <motion.button
-        onClick={() => navigate("/socials")}
-        className="flex items-center justify-center bg-green-500 text-white rounded-xl p-4 shadow-lg transition-transform transform hover:scale-105 hover:shadow-xl"
-        whileHover={{ scale: 1.05 }}
-    >
-        <UsersIcon className="mr-2" /> {/* Icon for Socials */}
-        Socials
-    </motion.button>
-    <motion.button
-        onClick={() => navigate("/college-life")}
-        className="flex items-center justify-center bg-pink-500 text-white rounded-xl p-4 shadow-lg transition-transform transform hover:scale-105 hover:shadow-xl"
-        whileHover={{ scale: 1.05 }}
-    >
-        <UniversityIcon className="mr-2" /> {/* Icon for College Life */}
-        College Life
-    </motion.button>
-            </div>
+            {/* Dynamic Navbar */}
+            <nav className="w-full py-4">
+                {/* Mobile Menu Button */}
+                <div className="lg:hidden flex justify-center mb-4">
+                    <button
+                        onClick={() => setMobileMenuOpen(!isMobileMenuOpen)}
+                        className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 focus:outline-none"
+                    >
+                        <span className="block w-6 h-0.5 bg-gray-600 dark:bg-gray-300 mb-1"></span>
+                        <span className="block w-6 h-0.5 bg-gray-600 dark:bg-gray-300 mb-1"></span>
+                        <span className="block w-6 h-0.5 bg-gray-600 dark:bg-gray-300"></span>
+                    </button>
+                </div>
 
-            {/* Main Content */}
+                {/* Mobile Menu */}
+                <AnimatePresence>
+                    {isMobileMenuOpen && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            className="lg:hidden"
+                        >
+                            <div className="flex flex-col space-y-2 items-center">
+                                {sections.map((section) => (
+                                    <NavButton key={section.id} section={section} />
+                                ))}
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* Desktop Menu */}
+                <div className="hidden lg:flex justify-center space-x-4">
+                    {sections.map((section) => (
+                        <NavButton key={section.id} section={section} />
+                    ))}
+                </div>
+            </nav>
+
+            {/* Main Content - Posts Feed */}
             <main className="container mx-auto px-4 py-8">
                 <div className="flex justify-center">
                     <div className="max-w-2xl w-full space-y-6">
                         {feed.map((post) => (
                             <div key={post.id} className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
-                                <img src={post.image} alt={post.description} className="w-full object-cover max-h-60 cursor-pointer" />
+                                <img src={post.image} alt={post.title} className="w-full object-cover max-h-60" />
                                 <div className="p-4">
                                     <div className="flex justify-between items-center">
-                                        <p className="text-lg font-bold dark:text-gray-100">{post.title}</p>
-                                        <p className="text-sm text-gray-600 dark:text-gray-400">{moment(post.timestamp).fromNow()}</p>
+                                        <h3 className="text-lg font-bold dark:text-gray-100">{post.title}</h3>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                                            {moment(post.timestamp).fromNow()}
+                                        </p>
                                     </div>
                                     <p className="mt-2 dark:text-gray-200">{post.description}</p>
                                     {post.link && post.link !== "#" && (
-                                        <a href={post.link} target="_blank" rel="noopener noreferrer" className="block mt-4 text-blue-500 dark:text-blue-400 hover:underline">More Details</a>
+                                        <a
+                                            href={post.link}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="block mt-4 text-blue-500 dark:text-blue-400 hover:underline"
+                                        >
+                                            More Details
+                                        </a>
                                     )}
                                     <div className="flex items-center justify-between mt-4">
-                                        <button onClick={() => handleLike(post.id)} className={`flex items-center text-sm font-medium ${likes[post.id] ? "text-red-500 dark:text-red-400" : "text-gray-500 dark:text-gray-300"}`}>
-                                            <HeartIcon className="mr-1 w-5 h-5" />{post.likes} Likes
+                                        <button
+                                            onClick={() => handleLike(post.id)}
+                                            className={`flex items-center text-sm font-medium ${
+                                                likes[post.id] ? "text-red-500 dark:text-red-400" : "text-gray-500 dark:text-gray-300"
+                                            }`}
+                                        >
+                                            <HeartIcon className="mr-1 w-5 h-5" />
+                                            {post.likes} Likes
                                         </button>
-                                        <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => {
-                                            const commentText = prompt("Enter your comment:");
-                                            handleAddComment(post.id, commentText);
-                                        }} className="flex items-center text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray300 dark:hover:text-gray200 focus:outline-none" aria-label="Add Comment">
-                                            <MessageCircleIcon className="mr -1 w -5 h -5" /> Comments ({comments[post.id]?.length || 0})
-                                        </motion.button>
+                                        <button
+                                            onClick={() => {
+                                                const commentText = prompt("Enter your comment:");
+                                                handleAddComment(post.id, commentText);
+                                            }}
+                                            className="flex items-center text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-200"
+                                        >
+                                            <MessageCircleIcon className="mr-1 w-5 h-5" />
+                                            Comments ({comments[post.id]?.length || 0})
+                                        </button>
                                     </div>
                                     {comments[post.id] && comments[post.id].length > 0 && (
-                                        <div className="mt -4 space-y -2">
-                                            {comments[post.id].map((c) => (
-                                                <div key={c.id} className="text-sm p -2 bg-gray -100 dark:bg-gray -700 rounded dark:textgray -200">
-                                                    <p>{c.text}</p>
-                                                    <p className="text-xs text-gray -500 dark:textgray -400 mt -1">{moment(c.timestamp).fromNow()}</p>
+                                        <div className="mt-4 space-y-2">
+                                            {comments[post.id].map((comment) => (
+                                                <div
+                                                    key={comment.id}
+                                                    className="text-sm p-2 bg-gray-100 dark:bg-gray-700 rounded dark:text-gray-200"
+                                                >
+                                                    <p>{comment.text}</p>
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                        {moment(comment.timestamp).fromNow()}
+                                                    </p>
                                                 </div>
                                             ))}
                                         </div>
@@ -203,8 +291,10 @@ const HomePage = () => {
             </main>
 
             {/* Footer */}
-            <footer className="bg-gray -100 dark:bggray -800 py -6 mt -8 text-center">
-                <p className="text-sm textgray -500 dark:textgray -400">© {new Date().getFullYear()} Ramaiah Institute of Technology Social Platform</p>
+            <footer className="bg-gray-100 dark:bg-gray-800 py-6 mt-8 text-center">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                    © {new Date().getFullYear()} Ramaiah Institute of Technology Social Platform
+                </p>
             </footer>
 
             {/* New Post Modal */}
