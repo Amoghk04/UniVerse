@@ -16,6 +16,8 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from threading import Thread
+from quiz.quiz_langchain_loader import generate_quiz_data_store
+from quiz.quiz_query_data import get_quiz_questions
 
 app = Flask(__name__)
 
@@ -26,7 +28,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 # Allow CORS for frontend at localhost:5173
-CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
+CORS(app, supports_credentials=True)
 
 load_dotenv()
 
@@ -1110,5 +1112,31 @@ def send_bulk_email():
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
     
+@app.route("/quiz/<username>/uploads", methods=["POST", "OPTIONS"])
+def quiz_upload(username):
+    if request.method == "OPTIONS":
+        # Respond to preflight request
+        return '', 200
+    
+    if not request.files:
+        return jsonify({"error": "No files uploaded"}), 400
+
+    try:
+        upload_folder = f"./uploads_{username}"
+        os.makedirs(upload_folder, exist_ok=True)
+
+        uploaded_files = []
+        for key in request.files:
+            file = request.files[key]
+            if file.filename:
+                filename = secure_filename(file.filename)
+                filepath = os.path.join(upload_folder, filename)
+                file.save(filepath)
+                uploaded_files.append(filename)
+
+        return jsonify({"message": "Files uploaded successfully", "files": uploaded_files}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 if __name__=="__main__":
     socketio.run(app, debug=True, host="0.0.0.0", port=5000)
